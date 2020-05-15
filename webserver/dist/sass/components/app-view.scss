@@ -1,0 +1,9 @@
+#app-view {}
+
+.app-view-content {
+    overflow: auto;
+    padding: 40px;
+    &.no-padding-left {
+        padding: 0 40px 0 0;
+    }
+}
