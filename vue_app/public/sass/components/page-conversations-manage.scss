@@ -83,6 +83,17 @@
 
 .conversation-settings-item {
     margin-bottom: 20px;
+    .conversation-settings-item--title {
+        font-size: 30px;
+        font-weight: 700;
+        color: $blueChart;
+        padding-right: 10px;
+    }
+    .conversation-settings-item--description {
+        padding-right: 10px;
+        color: #555;
+        font-style: italic;
+    }
     .conversation-settings-item--label {
         padding-bottom: 10px;
         .conversation-settings-item--icon {
@@ -150,6 +161,21 @@
     }
     .table-speaker--edit {
         position: relative;
+    }
+}
+
+.speaker-time-prct-container {
+    position: relative;
+    height: 14px;
+    width: 60px;
+    margin: 8px 0;
+    @include borderRadius(3px);
+    background-color: #E3EEFF;
+    overflow: hidden;
+    span {
+        display: inline-block;
+        height: 20px;
+        background: $blueLight;
     }
 }
 

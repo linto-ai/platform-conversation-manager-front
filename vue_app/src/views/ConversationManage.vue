@@ -1,5 +1,6 @@
 <template>
   <div class="flex row no-padding-left" v-if="convoLoaded">
+    <!-- LEFT PART -->
     <div class="flex col conversation-infos-container">
       <h2>Conversation informations</h2>
       <div class="conversation-infos-items">
@@ -52,13 +53,40 @@
         </div>
       </div>
     </div>
+    <!-- END LEFT PART -->
+    <!-- RIGHT PART -->
     <div class="flex1 flex col conversation-settings">
-      <div class="conversation-settings-item">
-        <h1>{{ convo.name }}</h1>
+      <!-- Title -->
+      <div class="conversation-settings-item flex row">
+        <span v-if="!titleEdit" class="conversation-settings-item--title">{{ convo.name.base }}</span>
+        <div v-else class="conversation-settings-item--title__edit flex col flex1">
+            <textarea v-model="convo.name.edit" class="textarea flex1"></textarea>
+            <div class="textarea--btns flex row">
+              <button class="btn btn--txt btn--txt__cancel" @click="cancelEditTitle()"><span class="label">Cancel</span></button>
+              <button class="btn btn--txt btn--txt__save" @click="update('name')"><span class="label">Save</span></button>
+            </div>
+        </div>
+        <button class="btn--icon" :class="titleEdit ? 'active': ''" @click="editTitle()">
+          <span class="icon icon--edit"></span>
+        </button>
       </div>
-      <div class="conversation-settings-item">
-        <span class="conversation-settings-item--description">{{ convo.description }}</span>
+
+
+      <!-- Description -->
+      <div class="conversation-settings-item flex row">
+        <span v-if="!descriptionEdit" class="conversation-settings-item--description">{{ convo.description.base }}</span>
+        <div v-else class="conversation-settings-item--title__edit flex col flex1">
+            <textarea v-model="convo.description.edit" class="textarea flex1"></textarea>
+            <div class="textarea--btns flex row">
+              <button class="btn btn--txt btn--txt__cancel" @click="cancelEditDescription()"><span class="label">Cancel</span></button>
+              <button class="btn btn--txt btn--txt__save" @click="update('description')"><span class="label">Save</span></button>
+            </div>
+        </div>
+        <button class="btn--icon" :class="descriptionEdit ? 'active': ''" @click="editDescription()">
+          <span class="icon icon--edit"></span>
+        </button>
       </div>
+
       <!-- Agenda -->
       <div class="conversation-settings-item">
         <div class="conversation-settings-item--label">
@@ -123,6 +151,12 @@
                       <EditFrame :speakerId="speaker.speaker_id" :owner="convo.owner" :sharedWith="convo.sharedWith"></EditFrame>
                     </div>
                   </td>
+                  <td>
+                    <div v-if="!!speakTime[speaker.speaker_id].time" class="speaker-time-prct-container">
+                      <span class="speaker-time-prct" :style="'width:'+parseInt(parseFloat(speakTime[speaker.speaker_id].time) * 100 / parseFloat(convo.duration))+'%'">
+                      </span>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -159,6 +193,8 @@ export default {
   data () {
     return {
       convo: '',
+      titleEdit: false,
+      descriptionEdit: false,
       agendaEdit: false,
       abstractEdit: false,
       keywordsEdit: false,
@@ -176,15 +212,43 @@ export default {
       this.updateSpeaker(data)
       this.speakerEdit = false
     })
+    
   },
   computed: {
     conversation () {
       return this.$store.state.conversation
+    },
+    speakTime () {
+      let res = {total: 0}
+      this.convo.text.map(spk => {
+        if (!res[spk.speaker_id]) {
+          res[spk.speaker_id] = { time: 0 }
+        }
+        spk.words.map(word => {
+          let time = parseFloat(parseFloat(word.etime).toFixed(2) - parseFloat(word.stime).toFixed(2)).toFixed(2)
+
+          res[spk.speaker_id].time += parseFloat(time)
+          res.total = parseFloat(Number(parseFloat(res.total) + parseFloat(time)).toFixed(2))
+        })
+      })
+      return res
     }
   },
   watch: {
     conversation (data) {
       this.convo = data
+      const titleVal = data.name
+      this.convo.name = {
+        base: titleVal,
+        edit: titleVal
+      }
+
+      const descVal = data.description
+      this.convo.description = {
+        base: descVal,
+        edit: descVal
+      }
+
       const agendaVal = data.agenda
       this.convo.agenda = {
         base: agendaVal,
@@ -215,23 +279,40 @@ export default {
         elem.srcElement.classList.add('closed')
       }
     },
+    editTitle () {
+      this.titleEdit = true
+    },
+    cancelEditTitle () {
+      this.titleEdit = false
+      this.convo.name.edit = this.convo.name.base
+    },
+    editDescription () {
+      this.descriptionEdit = true
+    },
+    cancelEditDescription () {
+      this.descriptionEdit = false
+      this.convo.description.edit = this.convo.description.base
+    },
     editAgenda () {
       this.agendaEdit = true
     },
     cancelEditAgenda () {
       this.agendaEdit = false
+      this.convo.agenda.edit = this.convo.agenda.base
     },
     editAbstract () {
       this.abstractEdit = true
     },
     cancelEditAbstract () {
       this.abstractEdit = false
+      this.convo.abstract.edit = this.convo.abstract.base
     },
     editKeywords () {
       this.keywordsEdit = true
     },
     cancelEditKeywords () {
       this.keywordsEdit = false
+      this.convo.keywords.edit = this.convo.keywords.base
     },
     editSpeaker (event, obj) {
       if (!this.speakerEdit) {
@@ -243,15 +324,23 @@ export default {
     },
     update (key) {
       this.conversation[key].base = this.conversation[key].edit
+      if (key === 'name') {
+        this.titleEdit = false
+        // REQUEST UPDATE title
+      }
+      if (key === 'description') {
+        this.descriptionEdit = false
+        // REQUEST UPDATE title
+      }
       if (key === 'agenda') {
         this.agendaEdit = false
         // REQUEST UPDATE AGENDA
       }
-      if(key === 'abstract') {
+      if (key === 'abstract') {
         this.abstractEdit = false
         // REQUEST UPDATE ABSTRACT
       }
-      if(key === 'keywords') {
+      if (key === 'keywords') {
         this.keywordsEdit = false
         // REQUEST UPDATE keywords
       }
@@ -297,7 +386,25 @@ export default {
         this.audioPlayer.pause()
         target.classList.remove('active')
       }, time * 1000)
-    }
+    },
+    /*calculSpeakTime () {
+      let res = []
+      res['total'] = 0
+      this.convo.text.map(spk => {
+        if (!res[spk.speaker_id]) {
+          res[spk.speaker_id] = 0
+        }
+        spk.words.map(word => {
+          
+          let time = parseFloat(parseFloat(word.etime).toFixed(2) - parseFloat(word.stime).toFixed(2)).toFixed(2)
+          
+          res[spk.speaker_id] = parseFloat(res[spk.speaker_id]) + parseFloat(time)
+
+          res['total'] = parseFloat(Number(parseFloat(this.speakTime['total']) + parseFloat(time)).toFixed(2))
+        })
+      })
+      return res
+    }*/
   },
   components: {
     EditFrame
