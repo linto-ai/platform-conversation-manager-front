@@ -6,7 +6,7 @@
         <button class="conversation-filter--btn conversation-filter--btn__active" >All</button> | <button class="conversation-filter--btn" >Owned by me</button> | <button class="conversation-filter--btn" >Shared with me</button> 
       </div>
       <div class="flex1 flex col flex-end">
-        <button class="btn btn--icon green">
+        <button class="btn btn--txt-icon green">
           <span class="label">New conversation</span>
           <span class="icon icon__plus"></span>
         </button>

@@ -11,6 +11,7 @@ npm run build-app
 ```bash
 cd ../webserver
 npm install
+cp .envdefault .env
 npm run start
 ```
 

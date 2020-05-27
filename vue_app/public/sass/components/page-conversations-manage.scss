@@ -140,5 +140,18 @@
     }
 }
 
+.textarea--btns {
+    justify-content: flex-end;
+}
+
+.table-speakers {
+    td {
+        padding: 5px;
+    }
+    .table-speaker--edit {
+        position: relative;
+    }
+}
+
 
 /*** END Conversation settings (right part) ***/

@@ -1,0 +1,41 @@
+.edit-frame {
+    padding: 10px;
+    background: #fff;
+    @include boxShadow(0, 2px, 2px, 0, rgba(0, 0, 0, 0.2));
+    @include borderRadius(3px);
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 40px;
+    min-width: 240px;
+    &>div {
+        .btn.btn--edit-speaker {
+            border: none;
+            background-color: transparent;
+            font-size: 16px;
+            padding: 5px 0;
+            color: $greenChart;
+            &:hover {
+                color: $blueChart;
+            }
+        }
+    }
+}
+
+.input--search-edit {
+    display: inline-block;
+    height: 30px;
+    line-height: 30px;
+    font-size: 16px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    padding: 0 5px 0 30px;
+    @include cancelBoxShadow();
+    color: #555;
+    margin: 0 5px 10px 0;
+    background-color: #FEFEFE;
+    background-image: url('../img/user.svg');
+    background-size: 30px 30px;
+    background-position: 0 0;
+    background-repeat: no-repeat;
+}

@@ -68,6 +68,10 @@ h3 {
     flex: 4;
 }
 
+.hidden {
+    display: none;
+}
+
 button {
     cursor: pointer;
     display: inline-block;
@@ -83,7 +87,7 @@ button {
         outline: none;
     }
     &.btn {
-        &.btn--icon {
+        &.btn--txt-icon {
             background-color: #fff;
             height: 40px;
             padding: 0 15px;
@@ -142,6 +146,84 @@ button {
                         background-color: #fff;
                     }
                 }
+            }
+        }
+        &.btn--txt {
+            height: 30px;
+            @include borderRadius(3px);
+            padding: 0 5px;
+            @include buttonShadow();
+            @include transition(all 0.3s ease);
+            margin: 5px;
+            background-color: #fff;
+            .label {
+                display: inline-block;
+                line-height: 30px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+            &.btn--txt__save {
+                .label {
+                    color: $greenChart;
+                }
+                &:hover {
+                    background-color: $greenChart;
+                    .label {
+                        color: #fff;
+                    }
+                }
+            }
+            &.btn--txt__cancel {
+                .label {
+                    color: #555;
+                }
+                &:hover {
+                    background-color: #555;
+                    .label {
+                        color: #fff;
+                    }
+                }
+            }
+        }
+    }
+    &.btn--icon {
+        display: inline-block;
+        height: 30px;
+        width: 30px;
+        background-color: #fff;
+        @include borderRadius(3px);
+        @include buttonShadow();
+        @include transition(all 0.3s ease);
+        position: relative;
+        z-index: 1;
+        .icon {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: $greenChart;
+            &.icon--edit {
+                @include maskImage('../img/edit.svg');
+            }
+            &.icon--play {
+                @include maskImage('../img/listen.svg');
+            }
+            &.icon--add {
+                @include maskImage('../img/plus.svg');
+            }
+        }
+        &:hover,
+        &.active {
+            background-color: $greenChart;
+            @include buttonShadowHover();
+            .icon {
+                background-color: #fff;
+            }
+        }
+        &:focus {
+            &:before {
+                display: inline-block;
+                content: "";
+                @include animateClick();
             }
         }
     }
@@ -217,4 +299,23 @@ button {
             }
         }
     }
+}
+
+.textarea {
+    display: inline-block;
+    font-family: 'Comfortaa', Arial, Helvetica, sans-serif;
+    padding: 10px;
+    font-size: 16px;
+    line-height: 24px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: none;
+    @include boxShadow(0,
+    2px,
+    4px,
+    0,
+    rgba(0, 0, 0, 0.2));
+    width: auto;
+    height: auto;
+    resize: vertical;
+    min-height: 100px;
 }

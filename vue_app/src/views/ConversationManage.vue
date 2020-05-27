@@ -1,5 +1,5 @@
 <template>
-  <div class="flex row no-padding-left">
+  <div class="flex row no-padding-left" v-if="convoLoaded">
     <div class="flex col conversation-infos-container">
       <h2>Conversation informations</h2>
       <div class="conversation-infos-items">
@@ -9,7 +9,7 @@
             <span class="conversation-infos-item--icon conversation-infos-item--icon__date"></span>
             <span class="conversation-infos-item--title">Date</span>
           </div>
-          <span class="conversation-infos-item--value">{{ conversation.date }}
+          <span class="conversation-infos-item--value">{{ convo.mdate }}</span>
         </div>
         <!-- Duration -->
         <div class="conversation-infos-item">
@@ -17,7 +17,7 @@
             <span class="conversation-infos-item--icon conversation-infos-item--icon__duration"></span>
             <span class="conversation-infos-item--title">Duration</span>
           </div>
-          <span class="conversation-infos-item--value">{{ conversation.duration }}
+          <span class="conversation-infos-item--value">{{ convo.mtime }}</span>
         </div>
         <!-- Last update -->
         <div class="conversation-infos-item">
@@ -25,7 +25,7 @@
             <span class="conversation-infos-item--icon conversation-infos-item--icon__lastupdate"></span>
             <span class="conversation-infos-item--title">Last update</span>
           </div>
-          <span class="conversation-infos-item--value">{{ conversation.lastUpdate }}
+          <span class="conversation-infos-item--value">{{ convo.last_update }}</span>
         </div>
         <!-- Owner -->
         <div class="conversation-infos-item">
@@ -33,7 +33,7 @@
             <span class="conversation-infos-item--icon conversation-infos-item--icon__owner"></span>
             <span class="conversation-infos-item--title">Owner</span>
           </div>
-          <span class="conversation-infos-item--value">{{ conversation.owner.name }}
+          <span class="conversation-infos-item--value">{{ convo.owner.name }}</span>
         </div>
         <!-- Shared with -->
         <div class="conversation-infos-item">
@@ -41,7 +41,7 @@
             <span class="conversation-infos-item--icon conversation-infos-item--icon__sharedwith"></span>
             <span class="conversation-infos-item--title">Shared with</span>
           </div>
-          <span class="conversation-infos-item--value" v-for="user in  conversation.sharedWith" :key="user.name">{{user.name }}
+          <span class="conversation-infos-item--value" v-for="user in convo.sharedWith" :key="user.name">{{ user.name }}</span>
         </div>
         <!-- Documents -->
         <div class="conversation-infos-item">
@@ -54,11 +54,10 @@
     </div>
     <div class="flex1 flex col conversation-settings">
       <div class="conversation-settings-item">
-        <h1>{{ conversation.title }}</h1>
+        <h1>{{ convo.name }}</h1>
       </div>
       <div class="conversation-settings-item">
-        <span class="conversation-settings-item--description">{{ conversation.description }}</span>
-
+        <span class="conversation-settings-item--description">{{ convo.description }}</span>
       </div>
       <!-- Agenda -->
       <div class="conversation-settings-item">
@@ -66,8 +65,18 @@
           <span class="conversation-settings-item--icon agenda"></span>
           <span class="conversation-settings-item--title">Agenda</span>
           <button class="conversation-settings-item--toggle-btn" @click="toggleContent($event, 'agenda-content')"></button>
+          <button class="btn--icon" :class="agendaEdit ? 'active': ''" @click="editAgenda()">
+            <span class="icon icon--edit"></span>
+          </button>
         </div>
-        <div class="conversation-settings-item--content" id="agenda-content">{{ conversation.agenda }}</div>
+          <div v-if="!agendaEdit" class="conversation-settings-item--content" id="agenda-content">{{ convo.agenda.base }}</div>
+          <div v-else class="flex col flex1">
+            <textarea v-model="convo.agenda.edit" class="textarea flex1"></textarea>
+            <div class="textarea--btns flex row">
+              <button class="btn btn--txt btn--txt__cancel" @click="cancelEditAgenda()"><span class="label">Cancel</span></button>
+              <button class="btn btn--txt btn--txt__save" @click="update('agenda')"><span class="label">Save</span></button>
+            </div>
+          </div>
       </div>
       <!-- Abstract -->
       <div class="conversation-settings-item">
@@ -75,8 +84,18 @@
           <span class="conversation-settings-item--icon abstract"></span>
           <span class="conversation-settings-item--title">Abstract</span>
           <button class="conversation-settings-item--toggle-btn" @click="toggleContent($event, 'abstract-content')"></button>
+          <button class="btn--icon" :class="abstractEdit ? 'active': ''" @click="editAbstract()">
+            <span class="icon icon--edit"></span>
+          </button>
         </div>
-        <div class="conversation-settings-item--content" id="abstract-content">{{ conversation.abstract }}</div>
+        <div v-if="!abstractEdit" class="conversation-settings-item--content" id="abstract-content">{{ convo.abstract.base }}</div>
+        <div v-else class="flex col flex1">
+          <textarea v-model="convo.abstract.edit" class="textarea flex1"></textarea>
+          <div class="textarea--btns flex row">
+            <button class="btn btn--txt btn--txt__cancel" @click="cancelEditAbstract()"><span class="label">Cancel</span></button>
+            <button class="btn btn--txt btn--txt__save" @click="update('abstract')"><span class="label">Save</span></button>
+          </div>
+        </div>
       </div>
 
       <div class="flex row">
@@ -90,12 +109,20 @@
           <div class="conversation-settings-item--content" id="speakers-content">
             <table class="table-speakers">
               <tbody>
-                <tr v-for="speaker in conversation.speakers" :key="speaker.id">
-                  <td>Speaker #{{speaker.id}}</td>
-                  <td>{{ speaker.name }}</td>
-                  <td>BTN</td>
-                  <td>BTN</td>
-                  <td>{{speaker.speechTimePrct}}</td>
+                <tr v-for="speaker in convo.speakers" :key="speaker.speaker_id">
+                  <td>Speaker : {{ speaker.speaker_name }}</td>
+                  <td>
+                    <button class="btn--icon" @click="playSample($event, speaker.stime, speaker.etime)">
+                      <span class="icon icon--play"></span>
+                    </button>
+                  <td>
+                    <div class="table-speaker--edit">
+                      <button class="btn--icon editspeaker" @click="editSpeaker($event, speaker)" >
+                        <span class="icon icon--edit"></span>
+                      </button>
+                      <EditFrame :speakerId="speaker.speaker_id" :owner="convo.owner" :sharedWith="convo.sharedWith"></EditFrame>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -107,69 +134,78 @@
             <span class="conversation-settings-item--icon keywords"></span>
             <span class="conversation-settings-item--title">Keywords</span>
             <button class="conversation-settings-item--toggle-btn" @click="toggleContent($event, 'keywords-content')"></button>
+            <button class="btn--icon" :class="keywordsEdit ? ' active' :''" @click="editKeywords()">
+               <span class="icon icon--edit"></span>
+            </button>
           </div>
-          <div class="conversation-settings-item--content" id="keywords-content">{{ conversation.keywords }}</div>
+          <div v-if="!keywordsEdit" class="conversation-settings-item--content" id="keywords-content">{{ convo.keywords.base }}</div>
+          <div v-else class="flex col flex1">
+            <textarea v-model="convo.keywords.edit" class="textarea flex1"></textarea>
+            <div class="textarea--btns flex row">
+              <button class="btn btn--txt btn--txt__cancel" @click="cancelEditKeywords()"><span class="label">Cancel</span></button>
+              <button class="btn btn--txt btn--txt__save" @click="update('keywords')"><span class="label">Save</span></button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+  <div v-else>Loading</div>
 </template>
 <script>
+import EditFrame from '@/components/EditFrame.vue'
 import { bus } from '../main.js'
 export default {
   data () {
     return {
-      conversation : {
-        title: 'Monday meeting #21',
-        description: 'R&D team meeting every monday',
-        agenda: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent scelerisque massa non enim porta, congue tempor sapien euismod.',
-        abstract: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent scelerisque massa non enim porta, congue tempor sapien euismod. Aliquam in ullamcorper turpis, eu sodales enim. Sed tincidunt id massa eu scelerisque. Nunc augue lorem, blandit non consequat et, lobortis a leo. Etiam a elementum elit. ',
-        date: '02/02/2020',
-        duration: '01:23:45',
-        lastUpdate: '13/02/2020 - 13:57:00',
-        owner: {
-          name: 'Romain Lopez'
-        },
-        sharedWith: [
-          {
-            name: 'Julie Hunter'
-          },
-          {
-            name: 'Catherine Thompson'
-          }
-        ],
-        documents: [],
-        speakers: [
-          {
-            id: '1',
-            name: 'Romain Lopez',
-            speechTimePrct: '34'
-          },
-          {
-            id: '2',
-            name: 'Julie Hunter',
-            speechTimePrct: '15'
-          },
-          {
-            id: '3',
-            name: 'Catherine Thompson',
-            speechTimePrct: '21'
-          },
-          {
-            id: '4',
-            name: 'Speaker #4',
-            speechTimePrct: '30'
-          }
-        ]
+      convo: '',
+      agendaEdit: false,
+      abstractEdit: false,
+      keywordsEdit: false,
+      convoLoaded: false,
+      speakerEdit: false,
+      audioPlayer: null
+    }
+  },
+  async mounted () {
+    bus.$emit('vertical_nav_close', {})
+    await this.dispatchStore('getConversation')
+    this.audioPlayer = new Audio()
+
+    bus.$on('update_speaker', (data) => {
+      this.updateSpeaker(data)
+      this.speakerEdit = false
+    })
+  },
+  computed: {
+    conversation () {
+      return this.$store.state.conversation
+    }
+  },
+  watch: {
+    conversation (data) {
+      this.convo = data
+      const agendaVal = data.agenda
+      this.convo.agenda = {
+        base: agendaVal,
+        edit: agendaVal
+      }
+
+      const abstractVal = data.abstract
+      this.convo.abstract = {
+        base: abstractVal,
+        edit: abstractVal
+      }
+
+      const keyWordsVal = data.keywords
+      this.convo.keywords = {
+        base: keyWordsVal,
+        edit: keyWordsVal
       }
     }
   },
-  mounted () {
-    bus.$emit('vertical_nav_close', {})
-  },
   methods: {
     toggleContent (elem, id) {
-      
       const target = document.getElementById(id)
       if (target.classList.contains('hidden')) {
         target.classList.remove('hidden')
@@ -178,7 +214,93 @@ export default {
         target.classList.add('hidden')
         elem.srcElement.classList.add('closed')
       }
+    },
+    editAgenda () {
+      this.agendaEdit = true
+    },
+    cancelEditAgenda () {
+      this.agendaEdit = false
+    },
+    editAbstract () {
+      this.abstractEdit = true
+    },
+    cancelEditAbstract () {
+      this.abstractEdit = false
+    },
+    editKeywords () {
+      this.keywordsEdit = true
+    },
+    cancelEditKeywords () {
+      this.keywordsEdit = false
+    },
+    editSpeaker (event, obj) {
+      if (!this.speakerEdit) {
+        const target = event.target
+        target.classList.add('active')
+        bus.$emit(`edit_speaker`, { speakerId : obj.speaker_id })
+        this.speakerEdit = true
+      }
+    },
+    update (key) {
+      this.conversation[key].base = this.conversation[key].edit
+      if (key === 'agenda') {
+        this.agendaEdit = false
+        // REQUEST UPDATE AGENDA
+      }
+      if(key === 'abstract') {
+        this.abstractEdit = false
+        // REQUEST UPDATE ABSTRACT
+      }
+      if(key === 'keywords') {
+        this.keywordsEdit = false
+        // REQUEST UPDATE keywords
+      }
+    },
+    updateSpeaker (payload) {
+      const targetBtn = document.getElementsByClassName('editspeaker')
+      for(let btn of targetBtn) {
+        if(btn.classList.contains('active')) {
+          btn.classList.remove('active')
+        }
+      }
+      if (payload !== null) {
+        this.convo.speakers.map(sp => {
+          if(sp.speaker_id === payload.speakerId) {
+            sp.speaker_name = payload.name
+          }
+        })
+      }
+      
+    },
+     async dispatchStore (topic) {
+      try {
+        const resp = await this.$options.filters.dispatchStore(topic)
+        if (resp.status === 'success') {
+          this.convoLoaded = true
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    playSample (event, start, end) {
+      const target = event.target
+      
+      const audio = this.convo.audio
+      this.audioPlayer.src = audio
+      this.audioPlayer.currentTime = start
+      this.audioPlayer.play()
+      target.classList.add('active')
+      const time = end - start
+      
+
+      setTimeout(()=> {
+        this.audioPlayer.pause()
+        target.classList.remove('active')
+      }, time * 1000)
     }
+  },
+  components: {
+    EditFrame
   }
 }
 </script>
