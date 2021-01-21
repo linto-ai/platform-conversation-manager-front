@@ -136,11 +136,15 @@
           </div>
           <div class="conversation-settings-item--content" id="speakers-content">
             <table class="table-speakers">
-              <tbody>
+              <tbody v-if="convo.speakers.length > 0">
                 <tr v-for="speaker in convo.speakers" :key="speaker.speaker_id">
-                  <td>Speaker : {{ speaker.speaker_name }}</td>
+                  <td>{{ speaker.speaker_name }}</td>
                   <td>
-                    <button class="btn--icon" @click="playSample($event, speaker.stime, speaker.etime)">
+                    <button 
+                      v-if='(!!speaker.stime && !!speaker.stime > 0) && (!!speaker.etime && !!speaker.etime > 0)'
+                      class="btn--icon" 
+                      @click="playSample($event, speaker.stime, speaker.etime)"
+                    >
                       <span class="icon icon--play"></span>
                     </button>
                   <td>
@@ -148,18 +152,31 @@
                       <button class="btn--icon editspeaker" @click="editSpeaker($event, speaker)" >
                         <span class="icon icon--edit"></span>
                       </button>
-                      <EditFrame :speakerId="speaker.speaker_id" :owner="convo.owner" :sharedWith="convo.sharedWith"></EditFrame>
+                     
                     </div>
                   </td>
                   <td>
                     <div v-if="!!speakTime[speaker.speaker_id].time" class="speaker-time-prct-container">
-                      <span class="speaker-time-prct" :style="'width:'+parseInt(parseFloat(speakTime[speaker.speaker_id].time) * 100 / parseFloat(convo.duration))+'%'">
+                      <span class="speaker-time-prct" :style="'width:'+ parseInt(parseFloat(speakTime[speaker.speaker_id].time) * 100 / parseFloat(convo.duration))+'%'">
                       </span>
                     </div>
+                  </td> 
+                  <td>
+                    <button 
+                    class="btn--icon btn--icon__no-bg editspeaker" 
+                    @click="deleteSpeaker(speaker.speaker_id)" 
+                    v-if="convo.speakers.length > 1"
+                  >
+                      <span class="icon icon--remove"></span>
+                    </button>
                   </td>
                 </tr>
               </tbody>
             </table>
+            <button class="btn btn--txt-icon green" @click="addSpeaker()">
+              <span class="label">New speaker</span>
+              <span class="icon icon__plus"></span>
+            </button>
           </div>
         </div>
         <!-- Keywords -->
@@ -182,17 +199,25 @@
           </div>
         </div>
       </div>
+      <a :href="`/interface/conversation/${convoId}/transcription`">TRANSCRIPTION</a>
     </div>
+    <ModalMergeSpeakersWithTarget :convoId="convoId"></ModalMergeSpeakersWithTarget>
+    <ModalDeleteSpeaker  :convoId="convoId"></ModalDeleteSpeaker>
+    <EditSpeakerFrame></EditSpeakerFrame>
   </div>
   <div v-else>Loading</div>
 </template>
 <script>
-import EditFrame from '@/components/EditFrame.vue'
+import EditSpeakerFrame from '@/components/EditSpeakerFrame.vue'
+import ModalMergeSpeakersWithTarget from '@/components/ModalMergeSpeakersWithTarget.vue'
+import ModalDeleteSpeaker from '@/components/ModalDeleteSpeaker.vue'
+import axios from 'axios'
 import { bus } from '../main.js'
 export default {
   data () {
     return {
       convo: '',
+      convoId: '',
       titleEdit: false,
       descriptionEdit: false,
       agendaEdit: false,
@@ -205,30 +230,36 @@ export default {
   },
   async mounted () {
     bus.$emit('vertical_nav_close', {})
-    await this.dispatchStore('getConversation')
+    this.convoId = this.$route.params.convoId
+
+    await this.dispatchStore('getConversations')
     this.audioPlayer = new Audio()
 
-    bus.$on('update_speaker', (data) => {
+    bus.$on('update_speaker', async (data) => {
       this.updateSpeaker(data)
       this.speakerEdit = false
+      await this.dispatchStore('getConversations')
     })
-    
+
   },
   computed: {
     conversation () {
-      return this.$store.state.conversation
+      return this.$store.getters.conversationById(this.convoId)
     },
     speakTime () {
       let res = {total: 0}
-      this.convo.text.map(spk => {
+      this.convo.speakers.map(spk => {
         if (!res[spk.speaker_id]) {
-          res[spk.speaker_id] = { time: 0 }
+          res[spk.speaker_id] = { time: 0.1 }
         }
-        spk.words.map(word => {
-          let time = parseFloat(parseFloat(word.etime).toFixed(2) - parseFloat(word.stime).toFixed(2)).toFixed(2)
-
-          res[spk.speaker_id].time += parseFloat(time)
-          res.total = parseFloat(Number(parseFloat(res.total) + parseFloat(time)).toFixed(2))
+      })
+      this.convo.text.map(txt => {
+        txt.words.map(word => {
+            if(!!res[txt.speaker_id]) {
+              let time = parseFloat(parseFloat(word.etime).toFixed(2) - parseFloat(word.stime).toFixed(2)).toFixed(2)
+              res[txt.speaker_id].time += parseFloat(time)
+              res.total = parseFloat(Number(parseFloat(res.total) + parseFloat(time)).toFixed(2))
+            }
         })
       })
       return res
@@ -314,11 +345,16 @@ export default {
       this.keywordsEdit = false
       this.convo.keywords.edit = this.convo.keywords.base
     },
-    editSpeaker (event, obj) {
+    editSpeaker (event, speaker) {
+      const btn = event.target
+      const bounce = btn.getBoundingClientRect()
+      const editSpeakerFrame = document.getElementById('edit-speaker-frame')
+      editSpeakerFrame.setAttribute('style',`top: ${bounce.y}px; left: ${bounce.x - 60}px`)
+      
       if (!this.speakerEdit) {
         const target = event.target
         target.classList.add('active')
-        bus.$emit(`edit_speaker`, { speakerId : obj.speaker_id })
+        bus.$emit(`edit_speaker`, {speaker, speakers: this.convo.speakers, conversationId: this.convoId})
         this.speakerEdit = true
       }
     },
@@ -327,6 +363,7 @@ export default {
       if (key === 'name') {
         this.titleEdit = false
         // REQUEST UPDATE title
+
       }
       if (key === 'description') {
         this.descriptionEdit = false
@@ -345,35 +382,27 @@ export default {
         // REQUEST UPDATE keywords
       }
     },
-    updateSpeaker (payload) {
+    async updateSpeaker (payload) {
       const targetBtn = document.getElementsByClassName('editspeaker')
       for(let btn of targetBtn) {
         if(btn.classList.contains('active')) {
           btn.classList.remove('active')
         }
       }
-      if (payload !== null) {
-        this.convo.speakers.map(sp => {
-          if(sp.speaker_id === payload.speakerId) {
-            sp.speaker_name = payload.name
-          }
-        })
-      }
-      
+      await this.dispatchStore('getConversations')
     },
-     async dispatchStore (topic) {
+    async dispatchStore (topic) {
       try {
         const resp = await this.$options.filters.dispatchStore(topic)
         if (resp.status === 'success') {
           this.convoLoaded = true
         }
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
     },
     playSample (event, start, end) {
       const target = event.target
-      
       const audio = this.convo.audio
       this.audioPlayer.src = audio
       this.audioPlayer.currentTime = start
@@ -387,27 +416,38 @@ export default {
         target.classList.remove('active')
       }, time * 1000)
     },
-    /*calculSpeakTime () {
-      let res = []
-      res['total'] = 0
-      this.convo.text.map(spk => {
-        if (!res[spk.speaker_id]) {
-          res[spk.speaker_id] = 0
-        }
-        spk.words.map(word => {
-          
-          let time = parseFloat(parseFloat(word.etime).toFixed(2) - parseFloat(word.stime).toFixed(2)).toFixed(2)
-          
-          res[spk.speaker_id] = parseFloat(res[spk.speaker_id]) + parseFloat(time)
-
-          res['total'] = parseFloat(Number(parseFloat(this.speakTime['total']) + parseFloat(time)).toFixed(2))
+    async addSpeaker () {
+      try {
+        const spkCount = this.convo.speakers.length
+        const addSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/speakers`, {
+          method: 'post', 
+          data: {
+            convoid: this.convoId,
+            speakername: `spk${spkCount +1}`
+          }
         })
+        console.log('addSpeaker', addSpeaker)
+        if (addSpeaker.status === 200) {
+          await this.dispatchStore('getConversations')
+        } else {
+          // todo error
+        }  
+      } catch (error) {
+        console.error(erorr)
+      }
+    },
+    deleteSpeaker (speakerId) {
+      // TODO
+      bus.$emit('modal_delete_speaker', {
+        convoId: this.convoId,
+        speakerId
       })
-      return res
-    }*/
+    }
   },
   components: {
-    EditFrame
+    EditSpeakerFrame,
+    ModalMergeSpeakersWithTarget,
+    ModalDeleteSpeaker
   }
 }
 </script>

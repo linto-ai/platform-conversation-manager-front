@@ -15,9 +15,6 @@
       <div>
         <a href="/interface/conversations" class="app-nav-link">My conversations</a>
       </div>
-      <div>
-        <a href="/interface/conversations/manage" class="app-nav-link">Manage</a>
-      </div>
     </div>
   </div>
 </template>

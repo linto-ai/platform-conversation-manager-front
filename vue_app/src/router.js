@@ -5,7 +5,7 @@ import Router from 'vue-router'
 import Index from './views/HelloWorld.vue'
 import Conversations from './views/Conversations.vue'
 import ConversationManage from './views/ConversationManage.vue'
-
+import ConversationTranscription from './views/ConversationTranscription.vue'
 Vue.use(Router)
 const router = new Router({
     mode: 'history',
@@ -31,10 +31,20 @@ const router = new Router({
             component: Conversations
         },
         {
-            path: '/interface/conversations/manage',
+            path: '/interface/conversation/:convoId',
             name: 'conversations manager',
             component: ConversationManage
+        },
+        {
+            path: '/interface/conversation/:convoId/transcription',
+            name: 'conversations transcription',
+            component: ConversationTranscription
         }
+        /*      {
+                  path: '/interface/conversations/transcript',
+                  name: 'conversation transcription',
+                  component: ConversationTranscription
+              } */
     ]
 })
 

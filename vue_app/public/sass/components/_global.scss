@@ -117,6 +117,15 @@ button {
                 &.icon__plus {
                     @include maskImage('../img/plus.svg');
                 }
+                &.icon__cancel {
+                    @include maskImage('../img/cancel.svg');
+                }
+                &.icon__apply {
+                    @include maskImage('../img/apply.svg');
+                }
+                &.icon__trash {
+                    @include maskImage('../img/trash-big.svg');
+                }
             }
             &:hover {
                 background-color: #fff;
@@ -131,7 +140,6 @@ button {
             &.green {
                 .label {
                     color: $greenChart;
-                    position: relative;
                 }
                 .icon {
                     background-color: $greenChart;
@@ -145,6 +153,46 @@ button {
                     .icon {
                         background-color: #fff;
                     }
+                }
+            }
+            &.green-green {
+                background-color: $greenChart;
+                .label {
+                    color: #fff;
+                }
+                .icon {
+                    background-color: #fff;
+                }
+                &:hover {
+                    background-color: rgba(66, 212, 186, 0.8);
+                    @include buttonShadowHover();
+                }
+            }
+            &.red {
+                background-color: rgba(254, 52, 110, 0.7);
+                .label {
+                    color: #fff;
+                }
+                .icon {
+                    background-color: #fff;
+                }
+                &:hover {
+                    background-color: $redChart;
+                    @include buttonShadowHover();
+                }
+            }
+            &.grey {
+                margin-right: 20px;
+                background-color: rgba(0, 0, 0, 0.4);
+                .label {
+                    color: #fff;
+                }
+                .icon {
+                    background-color: #fff;
+                }
+                &:hover {
+                    background-color: rgba(0, 0, 0, 0.8);
+                    @include buttonShadowHover();
                 }
             }
         }
@@ -201,6 +249,7 @@ button {
             width: 30px;
             height: 30px;
             background-color: $greenChart;
+            @include transition(background-color 0.3s ease);
             &.icon--edit {
                 @include maskImage('../img/edit.svg');
             }
@@ -210,6 +259,14 @@ button {
             &.icon--add {
                 @include maskImage('../img/plus.svg');
             }
+            &.icon--remove {
+                background-color: rgba(254, 52, 110, 0.5);
+                @include maskImage('../img/trash.svg');
+            }
+            &.icon--close {
+                background-color: rgba(254, 52, 110, 0.5);
+                @include maskImage('../img/close.svg');
+            }
         }
         &:hover,
         &.active {
@@ -217,13 +274,75 @@ button {
             @include buttonShadowHover();
             .icon {
                 background-color: #fff;
+                &.icon--remove,
+                &.icon--close {
+                    background-color: $redChart;
+                }
             }
         }
-        &:focus {
-            &:before {
-                display: inline-block;
-                content: "";
-                @include animateClick();
+    }
+    &:focus {
+        &:before {
+            display: inline-block;
+            content: "";
+            @include animateClick();
+        }
+    }
+    &.btn--inline {
+        border: none;
+        @include cancelBoxShadow();
+        @include borderRadius(0px);
+        .label {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        &:hover {
+            color: $greenChart;
+            text-decoration: underline;
+        }
+    }
+    &.btn--icon__no-bg {
+        background-color: transparent;
+        @include cancelBoxShadow();
+        &:hover {
+            background-color: transparent;
+            @include cancelBoxShadow();
+        }
+    }
+    &.btn--small {
+        display: inline-block;
+        padding: 5px;
+        @include borderRadius(3px);
+        @include boxShadow(1px,
+        1px,
+        2px,
+        0,
+        rgba(0, 0, 0, 0.2));
+        @include transition(all 0.3s ease);
+        .label {
+            font-size: 15px;
+            font-weight: 700;
+        }
+        &.blue-dark {
+            .label {
+                color: $blueChart;
+            }
+            &:hover {
+                background-color: $blueChart;
+                .label {
+                    color: #fff;
+                }
+            }
+        }
+        &.green {
+            .label {
+                color: $greenChart;
+            }
+            &:hover {
+                background-color: $greenChart;
+                .label {
+                    color: #fff;
+                }
             }
         }
     }
@@ -301,6 +420,13 @@ button {
     }
 }
 
+.form--label {
+    display: inline-block;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 10px 0 5px 0;
+}
+
 .textarea {
     display: inline-block;
     font-family: 'Comfortaa', Arial, Helvetica, sans-serif;
@@ -318,4 +444,25 @@ button {
     height: auto;
     resize: vertical;
     min-height: 100px;
+}
+
+input,
+select {
+    display: inline-block;
+    padding: 5px;
+    font-size: 15px;
+    background-color: #fafafa;
+    border: 1px solid #ccc;
+    min-width: 140px;
+    @include borderRadius(3px);
+    &.error {
+        border-color: $redChart;
+    }
+}
+
+.error-field {
+    display: inline-block;
+    font-size: 14px;
+    color: $redChart;
+    padding: 5px 0;
 }

@@ -1,0 +1,105 @@
+.transcritpion-container {
+    padding: 40px;
+}
+
+#transcription {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 20px;
+}
+
+.table--transcription {
+    tr {
+        border-bottom: 1px solid #ececec;
+        &.active {
+            background-color: rgba(66, 212, 186, 0.1);
+        }
+    }
+}
+
+td {
+    vertical-align: top;
+    padding: 20px 5px;
+    .transcription--turn,
+    .transcription--speaker {
+        @include noTextSelection();
+    }
+    &.transcription-speaker-sentence {
+        cursor: pointer;
+        &:hover {
+            background-color: $blueLight;
+        }
+    }
+    &.transcription--speaker-td {
+        text-align: right;
+    }
+}
+
+.transcription--word {
+    display: inline;
+    &.isplaying {
+        @include noTextSelection();
+        background: yellow;
+        font-size: 18px;
+        font-weight: 700;
+        padding: 2px 0;
+    }
+}
+
+.text-selected {
+    @include noTextSelection();
+    background-color: $blueChart;
+    color: #fff;
+}
+
+#selected-text-toolbox {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #efefef;
+    border: 1px solid #ccc;
+    z-index: 20;
+    padding: 5px;
+    @include borderRadius(3px);
+    @include blockShadow();
+    .selected-text-toolbox--btn {
+        display: inline-block;
+        height: 25px;
+        line-height: 25px;
+        padding: 0 5px;
+        margin: 0 5px;
+        position: relative;
+        vertical-align: top;
+        @include transition(all 0.3s ease);
+        @include borderRadius(3px);
+        color: $blueChart;
+        font-weight: 600;
+        &:hover {
+            color: #fff;
+            background-color: $blueChart;
+        }
+        &.close {
+            height: 25px;
+            width: 25px;
+            padding: 0;
+            background-color: transparent;
+            &:after {
+                content: "";
+                display: inline-block;
+                width: 25px;
+                height: 25px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                @include maskImage('../img/close.svg');
+                background-color: $redChart;
+            }
+            &:hover {
+                background-color: $redChart;
+                &:after {
+                    background-color: #fff;
+                }
+            }
+        }
+    }
+}

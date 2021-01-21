@@ -6,6 +6,22 @@ const Session = require('express-session')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 
+const CORS = require('cors')
+let corsOptions = {}
+let whitelistDomains = []
+
+if (process.env.API_WHITELIST.length > 0) {
+    whitelistDomains = process.env.API_WHITELIST.split(',')
+    corsOptions = {
+        origin: function(origin, callback) {
+            if (!origin || whitelistDomains.indexOf(origin) !== -1 || origin === 'undefined') {
+                callback(null, true)
+            } else {
+                callback(new Error('Not allowed by CORS'))
+            }
+        }
+    }
+}
 
 class WebServer extends Component {
     constructor(app) {
@@ -29,6 +45,7 @@ class WebServer extends Component {
                 maxAge: 604800 // 7 days
             }
         }
+        this.express.use(CORS(corsOptions))
         this.session = Session(sessionConfig)
         this.express.use(this.session)
         this.httpServer = this.express.listen(process.env.WEBSERVER_HTTP_PORT, "0.0.0.0", (err) => {
@@ -38,7 +55,6 @@ class WebServer extends Component {
 
         require('./routes/router.js')(this) // Loads all defined routes
             //crequire('./routecontrollers')(this) // Loads all defined routes
-        console.log(path.resolve(__dirname))
 
         this.express.use('/assets', express.static('./dist')) // Attaches ./public folder to / route
 

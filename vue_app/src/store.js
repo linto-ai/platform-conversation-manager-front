@@ -7,25 +7,67 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     strict: false,
     state: {
-        conversation: '',
+        conversations: '',
     },
     mutations: {
-        SET_CONVERSATION: (state, data) => {
-            state.conversation = data
+        SET_CONVERSATIONS: (state, data) => {
+            state.conversations = data
         }
     },
     actions: {
-        getConversation: async({ commit, state }) => {
+        getConversations: async({ commit, state }) => {
             try {
-                const getConvo = await axios.get(`${process.env.VUE_APP_URL}/api/convo`)
-                commit('SET_CONVERSATION', getConvo.data)
-                return state.conversation
+                const getConvos = await axios.get(`${process.env.VUE_APP_CONVO_API}/conversations`)
+                commit('SET_CONVERSATIONS', getConvos.data)
+                return state.conversations
             } catch (error) {
                 return ({
-                    error: 'Error on getting conversation'
+                    error: 'Error on getting conversations'
                 })
             }
         }
     },
-    getters: {}
+    getters: {
+        conversationById: (state) => (convoId) => {
+            try {
+                const conversation = state.conversations.filter(f => f._id === convoId)
+                if (conversation.length > 0) {
+                    return conversation[0]
+                } else {
+                    throw 'Conversation not found'
+                }
+            } catch (error) {
+                return error.toString()
+            }
+        },
+        speakersByConversationId: (state) => (convoId) => {
+            try {
+                const conversation = state.conversations.filter(f => f._id === convoId)
+                if (conversation.length > 0) {
+                    return conversation[0].speakers
+                } else {
+                    throw 'Speakers not found'
+                }
+            } catch (error) {
+                return error.toString()
+            }
+        },
+        textBySpeakerId: (state) => (convoId, speakerId) => {
+            try {
+                const conversation = state.conversations.filter(c => c._id === convoId)
+                return conversation[0].text.filter(txt => txt.speaker_id === speakerId)
+            } catch (error) {
+                return error.toString()
+
+            }
+        },
+        highlightsByConversationId: (state) => (convoId) => {
+            try {
+                const conversation = state.conversations.filter(c => c._id === convoId)
+                return conversation[0].highlights
+            } catch (error) {
+                return error.toString()
+            }
+        }
+    }
 })

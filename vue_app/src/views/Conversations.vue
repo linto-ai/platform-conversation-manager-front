@@ -26,16 +26,17 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="convo in sortedConversations" :key="convo.id">
-            <td class="title">{{ convo.title }}</td>
-            <td>{{ convo.description }}</td>
-            <td>{{ convo.date }}</td>
-            <td>{{ convo.duration }}</td>
-            <td>{{ convo.owner !== '' ? convo.owner : '-' }}</td>
-            <td>{{ convo.sharedWith.length > 0 ? convo.sharedWith : '-' }}</td>
-            <td class="status" :class="convo.status"><span class="label">{{ convo.status }}</span></td>
+          <tr>
           </tr>
-          
+          <tr v-for="convo in sortedConversations" :key="convo._id" @click="redirectConversationPage(convo._id)">
+            <td class="title">{{ convo.name }}</td>
+            <td>{{ convo.description }}</td>
+            <td>{{ convo.mdate }}</td>
+            <td>{{ secToHMS(convo.duration) }}</td>
+            <td>{{ convo.owner !== '' ? convo.owner.name : '-' }}</td>
+            <td><span v-for="user in convo.sharedWith" :key="user.id">{{ user.name }}</span></td>
+            <td class="status" :class="convo.locked === '0' ? 'open' : 'locked'"><span class="label">{{ convo.locked === '0' ? 'open' : 'locked' }}</span></td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -45,6 +46,7 @@
 export default {
   data () {
     return {
+      convosLoaded: false,
       sortBy: 'date',
       sortDirection: 'down',
       conversationsKeys: [
@@ -76,66 +78,42 @@ export default {
           key: 'status',
           text: 'Status'
         }
-      ],
-      conversations: [
-        {
-          id:'1',
-          title: 'Moday meeting #21',
-          description: 'R&D meeting every monday',
-          date: '02/02/2020',
-          duration: '01:23:45',
-          owner: '',
-          sharedWith: [],
-          status: 'open'
-        },
-        {
-          id:'2',
-          title: 'Moday meeting #20',
-          description: 'R&D meeting every monday',
-          date: '21/01/2020',
-          duration: '00:55:21',
-          owner: '',
-          sharedWith: [],
-          status: 'locked'
-        },
-        {
-          id:'3',
-          title: 'Moday meeting #19',
-          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ultricies dolor erat, a consequat neque lacinia vitae. ',
-          date: '10/01/2020',
-          duration: '01:03:32',
-          owner: '',
-          sharedWith: [],
-          status: 'open'
-        }
       ]
     }
+  },
+  async mounted () {
+    await this.dispatchConversations()
   },
   computed: {
     sortedConversations () {
       let sortedArray = this.conversations
-      const key = this.sortBy
-      if (this.sortDirection === 'down') {
-        return sortedArray.sort(function (a, b) {
-          if (a[key] > b[key]) {
-            return 1
-          }
-          if (a[key] < b[key]) {
-            return -1
-          }
-          return 0
-        })
-      } else {
-        return sortedArray.sort(function (a, b) {
-          if (a[key] < b[key]) {
-            return 1
-          }
-          if (a[key] > b[key]) {
-            return -1
-          }
-          return 0
-        })
+      if(sortedArray.length > 0) {
+        const key = this.sortBy
+        if (this.sortDirection === 'down') {
+          return sortedArray.sort(function (a, b) {
+            if (a[key] > b[key]) {
+              return 1
+            }
+            if (a[key] < b[key]) {
+              return -1
+            }
+            return 0
+          })
+        } else {
+          return sortedArray.sort(function (a, b) {
+            if (a[key] < b[key]) {
+              return 1
+            }
+            if (a[key] > b[key]) {
+              return -1
+            }
+            return 0
+          })
+        }
       }
+    },
+    conversations () {
+      return this.$store.state.conversations
     }
   },
   methods: {
@@ -148,6 +126,19 @@ export default {
         this.sortDirection = 'down'
       }
       
+    },
+    async dispatchConversations () {
+      this.convosLoaded = await this.$options.filters.dispatchStore('getConversations')
+    },
+     secToHMS (time) {
+      const totalSeconds = parseInt(time)
+      const hour = Math.floor(time / (60 * 60))
+      const min = Math.floor(time / 60)
+      const sec =  Math.floor(time % 60)
+      return `${hour < 10  ? '0' + hour : hour}:${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec }`
+    },
+    redirectConversationPage (convoId) {
+      document.location.href = `/interface/conversation/${convoId}`
     }
   }
 }

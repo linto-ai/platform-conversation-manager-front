@@ -1,4 +1,8 @@
-#app-view {}
+#app-view {
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
 
 .app-view-content {
     overflow: auto;

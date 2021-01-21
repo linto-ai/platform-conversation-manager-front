@@ -6,7 +6,7 @@
     "license": "GNU AFFERO GPLV3",
     "scripts": {
         "build-app": "npm run build:css && vue-cli-service build --mode production",
-        "build-dev": "vue-cli-service build --mode development && npm run build:css",
+        "build-dev": "npm run build:css && vue-cli-service build --mode development",
         "build:css": "./node_modules/node-sass/bin/node-sass ./public/sass/styles.scss ./public/css/styles.css --output-style compressed",
         "serve": "vue-cli-service serve",
         "build": "vue-cli-service build"
