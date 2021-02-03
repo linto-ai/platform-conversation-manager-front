@@ -33,8 +33,20 @@
             <td>{{ convo.description }}</td>
             <td>{{ convo.mdate }}</td>
             <td>{{ secToHMS(convo.duration) }}</td>
-            <td>{{ convo.owner !== '' ? convo.owner.name : '-' }}</td>
-            <td><span v-for="user in convo.sharedWith" :key="user.id">{{ user.name }}</span></td>
+            <td>
+              <div class="table-user-img flex row">
+                <span class="table-user-img__span" :data-name="convo.owner.name">
+                  <img :src="convo.owner.img" class="table-user-img__img" >
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="table-user-img flex row">
+                <span class="table-user-img__span" v-for="user in convo.sharedWith" :key="user.id" :data-name="user.name">
+                  <img :src="user.img" class="table-user-img__img" >
+                </span>
+              </div>
+            </td>
             <td class="status" :class="convo.locked === '0' ? 'open' : 'locked'"><span class="label">{{ convo.locked === '0' ? 'open' : 'locked' }}</span></td>
           </tr>
         </tbody>

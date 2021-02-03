@@ -52,6 +52,12 @@
                 &.conversation-infos-item--icon__documents {
                     @include maskImage('../img/documents.svg');
                 }
+                &.conversation-infos-item--icon__keywords {
+                    @include maskImage('../img/keyword.svg');
+                }
+                &.conversation-infos-item--icon__highlights {
+                    @include maskImage('../img/marker.svg');
+                }
             }
             .conversation-infos-item--title {
                 display: inline-block;

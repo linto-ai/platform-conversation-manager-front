@@ -16,7 +16,7 @@
             Edit speaker</button>
          </div>
           <!-- Edit speaker form-->
-          <div class="edit-frame-options" :class="showEditSpkOptions ? 'opened' : 'closed'">
+          <div class="edit-frame-options radio" :class="showEditSpkOptions ? 'opened' : 'closed'">
             <div class="flex row edit-frame-options--item">
               <input 
                 type="radio" 

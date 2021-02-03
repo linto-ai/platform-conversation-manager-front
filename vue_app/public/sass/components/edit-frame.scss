@@ -187,7 +187,7 @@
     }
 }
 
-.input--search-edit {
+input[type="text"].input--search-edit {
     display: inline-block;
     height: 30px;
     line-height: 30px;

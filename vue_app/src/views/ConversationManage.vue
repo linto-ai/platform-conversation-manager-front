@@ -199,7 +199,12 @@
           </div>
         </div>
       </div>
-      <a :href="`/interface/conversation/${convoId}/transcription`">TRANSCRIPTION</a>
+      <div class="flex row">
+        <a :href="`/interface/conversation/${convoId}/transcription`" class="btn btn--txt-icon blue"> 
+          <span class="label">Transcription</span>
+          <span class="icon icon__transcription"></span>
+        </a>
+      </div>
     </div>
     <ModalMergeSpeakersWithTarget :convoId="convoId"></ModalMergeSpeakersWithTarget>
     <ModalDeleteSpeaker  :convoId="convoId"></ModalDeleteSpeaker>

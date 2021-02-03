@@ -2,50 +2,101 @@
   <div class="flex row no-padding-left" v-if="dataLoaded">
     <!-- LEFT PART -->
     <div class="flex col conversation-infos-container">
-      <h2>Conversation informations</h2>
+      <h2>Transcription display options</h2>
       <div class="conversation-infos-items">
-        current time : {{ currentTime }}
+          <!-- Keywords -->
+        <div class="conversation-infos-item">
+          <div class="conversation-infos-item--label">
+            <span class="conversation-infos-item--icon conversation-infos-item--icon__keywords"></span>
+            <span class="conversation-infos-item--title">Keywords</span>
+          </div>
+        </div>
+          <!-- Highlights -->
+        <div class="conversation-infos-item">
+          <div class="conversation-infos-item--label">
+            <span class="conversation-infos-item--icon conversation-infos-item--icon__highlights"></span>
+            <span class="conversation-infos-item--title">Highlights</span>
+          </div>
+        </div>
       </div>
     </div>
     <!-- END LEFT PART -->
     <!-- RIGHT PART -->
     <div class="flex1 flex col transcritpion-container">
+      <div class="flex row" style="margin-bottom: 20px;">
+         <a :href="`/interface/conversation/${convoId}`" class="btn btn--txt-icon blue"> 
+          <span class="label">Back to conversation</span>
+          <span class="icon icon__backto"></span>
+        </a>
+      </div>
       <h1>{{ convo.name }}</h1>
-      <button @click="editionMode = !editionMode">EDITION</button>
+      <button @click="setEditionMode()">EDITION</button>
+      <!-- TRANSCRIPTION -->
       <div id="transcription" v-if="!editionMode">
         <table class="table table--transcription" v-if="!!convo.text && convo.text.length > 0 && speakersArray.length > 0">
           <tr 
-            v-for="speaker in convo.text" 
-            :key="speaker.turn_id" 
-            :data-stime="speaker.words[0].stime" 
-            :data-etime="speaker.words[speaker.words.length-1].etime"
-            :data-turn="speaker.turn_id"
-            :class="currentTurn === speaker.pos ? 'active active--speaker' : ''"
+            v-for="turn in convo.text" 
+            :key="turn.turn_id" 
+            :data-stime="turn.words[0].stime" 
+            :data-etime="turn.words[turn.words.length-1].etime"
+            :class="currentTurn === turn.pos ? 'active active--speaker' : ''"
             class="table-speaker--turn"
           >
-            <td><span class="transcription--turn">{{ speaker.pos }}</span></td>
+            <td><span class="transcription--turn">{{ turn.pos }}</span></td>
             <td class="transcription--speaker-td">
               <div class="table-speaker--edit">
-                <button class="btn--inline btn--inline-transcription-speaker" @click="editSpeaker($event, speakersArray[speakersArray.findIndex(sp => sp.speaker_id === speaker.speaker_id)], speaker.turn_id)">
-                  <span class="label transcription--speaker">{{ speakersArray[speakersArray.findIndex(sp => sp.speaker_id === speaker.speaker_id)].speaker_name }}</span>
+                <button class="btn--inline btn--inline-transcription-speaker" @click="editSpeaker($event, speakersArray[speakersArray.findIndex(sp => sp.speaker_id === turn.speaker_id)], turn.turn_id)">
+                  <span class="label transcription--speaker">{{ speakersArray[speakersArray.findIndex(sp => sp.speaker_id === turn.speaker_id)].speaker_name }}</span>
                 </button>
                 
               </div>
             </td>
-            <td class="transcription-speaker-sentence" v-if="!!speaker.words && speaker.words.length > 0" :data-key="speaker.turn_id" >
+            <td 
+              class="transcription-speaker-sentence" 
+              v-if="!!turn.words && turn.words.length > 0" 
+              :data-key="turn.turn_id" 
+              :data-turn-id="turn.turn_id"
+              :data-pos="turn.pos"
+              :data-speaker="turn.speaker_id"
+            >
               <span 
-                v-for="word in speaker.words" 
+                v-for="word in turn.words" 
                 :key="word.wid" 
+                :data-word-id="word.wid" 
                 :data-stime="word.stime" 
                 :data-etime="word.etime"
                 :data-pos="word.pos"
                 class="transcription--word" 
                 :class="(parseFloat(word.stime) <= parseFloat(currentTime)) && (parseFloat(word.etime) >= parseFloat(currentTime)) ? 'isplaying' : ''"
-                @click="playFromWord(word.stime)"
+                
               >{{ word.word }}&nbsp;</span>
             </td>
           </tr>
         </table>
+      </div>
+      <!-- EDITION -->
+      <div v-else id="transcription-edition">
+        <table class="table table--transcription" v-if="speakersArray.length > 0">
+          <tr 
+            v-for="turn in editionObj" 
+            :key="turn.turn_id" 
+            class="table-speaker--turn"
+          >
+            <td><span class="transcription--turn">{{ turn.pos }}</span></td>
+            <td class="transcription--speaker-td">
+              <div class="table-speaker--edit">
+                <span class="label transcription--speaker">{{ speakersArray[speakersArray.findIndex(sp => sp.speaker_id === turn.speaker_id)].speaker_name }}</span>
+              </div>
+            </td>
+            <td class="transcription-speaker-sentence" >
+              <textarea 
+                class="transcription-edition--textarea"
+                v-model="turn.text"
+              ></textarea>
+            </td>
+          </tr>
+        </table>
+        <button @click="validateEdition()">OK</button>
       </div>
        <div> 
           <AudioPlayer :audioFile="convo.audio" :duration="convo.duration"></AudioPlayer>
@@ -55,7 +106,8 @@
     
     <EditSpeakerTranscriptionFrame></EditSpeakerTranscriptionFrame>
     <ModalMergeSentences></ModalMergeSentences>
-    <SelectedTextToolbox :conversationId="convoId" :content="selectedText" :show="showSelectToolbox"></SelectedTextToolbox>
+    <ModalSplitTurns></ModalSplitTurns>
+    <SelectedTextToolbox :conversationId="convoId" :content="selectedText" :options="toolBoxOption"></SelectedTextToolbox>
   </div>
   <div v-else>Loading</div>
 </template>
@@ -65,6 +117,7 @@ import EditSpeakerTranscriptionFrame from '@/components/EditSpeakerTranscription
 import HighlightModal from '@/components/HighlightModal.vue'
 import AudioPlayer from '@/components/AudioPlayer.vue'
 import SelectedTextToolbox from '@/components/SelectedTextToolbox.vue'
+import ModalSplitTurns from '@/components/ModalSplitTurns.vue'
 import { bus } from '../main.js'
 export default {
   data () {
@@ -73,11 +126,19 @@ export default {
       currentTime: 0,
       speakerEdit: false,
       selectedText: [],
-      selectedTextParent: null,
       cursorX: 0,
       cursorY: 0,
       showSelectToolbox: false,
-      editionMode: false
+      editionMode: false,
+      editionObj: [],
+      toolBoxOption: {
+        comment: true,
+        highlight: true,
+        keywords: true,
+        split: true
+      },
+      clickTime: 0,
+      selectionObj: null
     }
   },
   async mounted () {
@@ -111,6 +172,11 @@ export default {
     bus.$on('refresh_conversation', async () => {
       await this.dispatchStore('getConversations')
     })
+
+    bus.$on('close_selected_toolbox', () => {
+      this.cancelTextSelection()
+    })
+    
     this.initTextSelection()
   },
   watch: {
@@ -135,9 +201,9 @@ export default {
       return speakersArray
     },
     currentTurn () {
-      for(let speaker of this.convo.text) {
-        if (this.currentTime >= speaker.words[0].stime && this.currentTime <= speaker.words[speaker.words.length-1].etime) {
-          return speaker.turn_number
+      for(let turn of this.convo.text) {
+        if (this.currentTime >= turn.words[0].stime && this.currentTime <= turn.words[turn.words.length-1].etime) {
+          return turn.turn_number
         }
       }
       return 0
@@ -152,105 +218,154 @@ export default {
         document.captureEvents(Event.MOUSEMOVE)
       }
       const transcription = document.getElementById('transcription')
-      console.log('trnasc:', transcription)
       // text selection event in "transcription" block
       transcription.addEventListener('selectstart', () => {
-        console.log('allo ? ')
-          transcription.onmouseup = (e) => {
-            e.preventDefault()
-            const selection = window.getSelection()
-            
-            this.selectedText = []
-            this.selectedTextParent = null
-            
-            // > Selection: first element
-            // chrome = selection.baseNode
-            // firefox = selection.anchorNode
-            const startElem = !selection.baseNode ? selection.anchorNode.parentNode : selection.baseNode.parentNode 
-            const startPosition = parseInt(startElem.getAttribute('data-pos'))
-            const startOffsetParent = startElem.offsetParent
+        let startClick = new Date()
+        transcription.onmouseup = (e) => {
+          const stopClick = new Date()
+          this.clickTime = stopClick - startClick
 
-            const startOffsetParentId = startOffsetParent.getAttribute('data-key')
-            
-            // > Selection: last element
-            // chrome = selection.extendNode
-            // firefox = selection.focusNode
-            const endElem = !selection.extentNode ? selection.focusNode.parentNode : selection.extentNode.parentNode
-            const endPosition = parseInt(endElem.getAttribute('data-pos'))
-            const endOffsetParent = endElem.offsetParent
-            const selectionObj = {
-              startElem,
-              startPosition,
-              startOffsetParent,
-              startOffsetParentId,
-              endElem,
-              endPosition,
-              endOffsetParent
-            }
-            if(!startOffsetParent.classList.contains('transcription-speaker-sentence') || !endOffsetParent.classList.contains('transcription-speaker-sentence')) {
-              return false 
+
+          const selection = window.getSelection()
+          this.selectedText = []
+          
+          // > Selection: first element
+          // chrome = selection.baseNode
+          // firefox = selection.anchorNode
+          const startWord = !selection.baseNode ? selection.anchorNode.parentNode : selection.baseNode.parentNode 
+          const startWordId = startWord.getAttribute('data-word-id')
+          const startWordPosition = startWord.getAttribute('data-pos')
+          const startTurn = startWord.offsetParent
+          const startTurnId = startTurn.getAttribute('data-turn-id')
+          const startTurnPosition = startTurn.getAttribute('data-pos')
+          const startTurnSpeakerId = startTurn.getAttribute('data-speaker')
+          // > Selection: last element
+          // chrome = selection.extendNode
+          // firefox = selection.focusNode
+          const endWord = !selection.extentNode ? selection.focusNode.parentNode : selection.extentNode.parentNode
+          const endWordId = endWord.getAttribute('data-word-id')
+          const endWordPosition = endWord.getAttribute('data-pos')
+
+          const endTurn = endWord.offsetParent
+          const endTurnId = endTurn.getAttribute('data-turn-id')
+          const endTurnPosition = endTurn.getAttribute('data-pos')
+          const endTurnSpeakerId = endTurn.getAttribute('data-speaker')
+          this.selectionObj = {
+            startWord,
+            startWordId,
+            startWordPosition,
+            startTurn,
+            startTurnId,
+            startTurnPosition,
+            startTurnSpeakerId,
+            endWord,
+            endWordId,
+            endWordPosition,
+            endTurn,
+            endTurnId,
+            endTurnPosition,
+            endTurnSpeakerId
+          }
+          if(!startTurn.classList.contains('transcription-speaker-sentence') || !endTurn.classList.contains('transcription-speaker-sentence')) {
+            return false 
+          } else {
+            if (this.clickTime > 150) {
+              this.setTextSelection(this.selectionObj)
             } else {
-              const startParentKey = startOffsetParent.getAttribute('data-key')
-              const endParentKey = endOffsetParent.getAttribute('data-key')
-              if(startParentKey === endParentKey) {
-                const option = document.getElementById('selected-text-toolbox')
-                let newSelection = []
-                let allNodes = !selection.baseNode ? selection.anchorNode.parentNode.offsetParent.childNodes : selection.baseNode.parentNode.offsetParent.childNodes
-
-                for(let span of allNodes) {
-                  const pos = parseInt(span.getAttribute('data-pos'))
-                  if( pos >= startPosition && pos <= endPosition) {
-                    newSelection.push(span)
-                    
+              
+              this.playFromWord(endWord.getAttribute('data-stime'))
+              this.selectionObj = null
+            }
+          }
+        }
+      })
+    },
+    showToolBox (selectionObj) {
+      const bounce = selectionObj.startWord.getBoundingClientRect()
+      const offsetX = bounce.x
+      const offsetY = bounce.y
+      // Show toolbox and place it
+      bus.$emit('show_selected_toolbox', {
+        selectionObj,
+        offsetX,
+        offsetY,
+        convoId: this.convoId
+      })
+      // cancel "onmouseup" event bind
+      const transcription = document.getElementById('transcription')
+      transcription.onmouseup = (e) => {
+        e.preventDefault()
+      }
+    },
+    setTextSelection (selectionObj) {
+      this.cancelTextSelection()
+      setTimeout(() => {
+        let allParents = document.getElementsByClassName('transcription-speaker-sentence')
+        const startTurnPosition = parseInt(selectionObj.startTurnPosition)
+        const endTurnPosition= parseInt(selectionObj.endTurnPosition)
+        const startWordPosition = parseInt(selectionObj.startWordPosition)
+        const endWordPosition = parseInt(selectionObj.endWordPosition)
+        
+        if(selectionObj.startTurnId === selectionObj.endTurnId) { // 1 turn selection
+          this.toolBoxOption = {
+            comment: true,
+            highlight: true,
+            keywords: true,
+            split: true
+          }
+          for(let parent of allParents) {
+            const turnId = parent.getAttribute('data-turn-id')
+            if(turnId === selectionObj.startTurnId) {
+              if (!!parent.childNodes && parent.childNodes.length > 0) {
+                for(let word of parent.childNodes) {
+                  let wordPos = parseInt(word.getAttribute('data-pos'))
+                  if (wordPos >= startWordPosition && wordPos <= endWordPosition) {
+                    word.classList.add('text-selected')
                   }
                 }
-                this.updateSelection(newSelection, selectionObj)
               }
             }
           }
-      })
-    },
-    updateSelection (newSelection, selectionObj) {
-      this.cancelTextSelection()
-      setTimeout(()=>{
-        this.selectedText = newSelection
-        
-        let allParents = document.getElementsByClassName('transcription-speaker-sentence')
-
-        for(let sentence of allParents) {
-          if (sentence.getAttribute('data-key') === selectionObj.startOffsetParentId) {
-            this.selectedTextParent = sentence 
+        } else { // Many turns selection
+          this.toolBoxOption = {
+            comment: false,
+            highlight: false,
+            keywords: false,
+            split: true
           }
-        }
-        
-        if (this.selectedText.length > 0) {
-          for(let word of this.selectedText) {
-            if (word.classList.contains('transcription--word')) {
-              word.classList.add('text-selected')
+          for(let parent of allParents) {
+            if (!!parent.childNodes && parent.childNodes.length > 0) {
+              const turnPosition = parseInt(parent.getAttribute('data-pos'))
+              console.log(turnPosition, startTurnPosition, endTurnPosition)
+              if(turnPosition === startTurnPosition) { // start Turn
+                for(let word of parent.childNodes) {
+                  let wordPos = parseInt(word.getAttribute('data-pos'))
+                  if (wordPos >= startWordPosition) {
+                    word.classList.add('text-selected')
+                  }
+                }
+              } else if (turnPosition === endTurnPosition) { // end Turn
+                for(let word of parent.childNodes) {
+                  let wordPos = parseInt(word.getAttribute('data-pos'))
+                  if (wordPos <= endWordPosition) {
+                    word.classList.add('text-selected')
+                  }
+                }
+              } else if (turnPosition > startTurnPosition && turnPosition < endTurnPosition) { // middle turn(s)
+                for(let word of parent.childNodes) {
+                    word.classList.add('text-selected')
+                }
+              }
             }
           }
-          const toolbox = document.getElementById('selected-text-toolbox')
-          const startElem = selectionObj.startElem
-          const bounce = startElem.getBoundingClientRect()
-          const offsetX = bounce.x
-          const offsetY = bounce.y
-          // Show toolbox and place it
-          this.showSelectToolbox = true
-          toolbox.setAttribute('style', `top: ${parseInt(offsetY)- 45}px; left: ${parseInt(offsetX - 100)}px`)
-
-          // cancel "onmouseup" event bind
-          const transcription = document.getElementById('transcription')
-          transcription.onmouseup = (e) => {
-            e.preventDefault()
-          }
-        }  
-      }, 200)
+        }
+        this.showToolBox(selectionObj)
+      }, 100)
     },
     cancelTextSelection () {
       this.showSelectToolbox = false
       this.closeToolBox()
       this.selectedText = []
-      this.selectedTextParent = null
       let selected = document.getElementsByClassName('text-selected')
       if(selected.length > 0) {
         Array.from(document.querySelectorAll('.transcription--word')).forEach(function(el) { 
@@ -304,8 +419,10 @@ export default {
       
     },
     playFromWord (stime) {
-      console.log('playfrom: ', stime)
-      bus.$emit('audio_player_playfrom', {time: stime})
+      console.log('clicktime = ', this.clickTime)
+      if(stime !== '' && this.clickTime <= 150){
+        bus.$emit('audio_player_playfrom', {time: stime})
+      }
     },
     setPreviousSpeakerTime () {
       const tr = document.getElementsByClassName('active--speaker')
@@ -347,6 +464,59 @@ export default {
         }
       }
     },
+    /* EDITION MODE */
+    setEditionMode() {
+      this.editionObj = []
+      if (this.convo.text.length > 0) {
+        this.convo.text.map(turn => {
+          let text = ''
+          if (turn.words.length > 0) {
+            turn.words.map(word => {
+              text += word.word + ' '
+            })
+          }
+          this.editionObj.push({
+            speaker_id: turn.speaker_id,
+            turn_id: turn.turn_id,
+            pos: turn.pos,
+            text,
+            originalLength: turn.words.length
+          })
+        })
+        this.editionMode = true
+      }
+    },
+    validateEdition() {
+      console.log(this.editionObj)
+      if (this.editionObj.length > 0) {
+        let newTranscription = []
+        this.editionObj.map(turn => {
+          let originalLength = originalLength
+          // Start of building the new object from "edition content"
+          let newTurn = {
+            pos: turn.pos, 
+            speaker_id: turn.speaker_id,
+            turn_id: turn.trun_id,
+            words: []
+          }
+          if (turn.text.length > 0) {
+            let splitText = turn.text.split(' ')
+            for(let i = 0; i < splitText.length; i++) {
+              if(splitText[i] !== ' ' && splitText[i] !== ''){
+                newTurn.words.push({
+                  word: splitText[i],
+                  stime: '',
+                  etime: '',
+                  pos: i
+                })
+              }
+            }
+          }
+          newTranscription.push(newTurn)
+        })
+        console.log('newTranscription', newTranscription)
+      }
+    },
     async dispatchStore (topic) {
       try {
         const resp = await this.$options.filters.dispatchStore(topic)
@@ -363,7 +533,8 @@ export default {
     AudioPlayer,
     SelectedTextToolbox,
     HighlightModal,
-    ModalMergeSentences
+    ModalMergeSentences,
+    ModalSplitTurns
   }
 }
 </script>

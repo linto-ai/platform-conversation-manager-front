@@ -6,6 +6,8 @@
     background-color: #fff;
     border: 1px solid #ccc;
     padding: 20px;
+    max-height: 500px;
+    overflow: auto;
 }
 
 .table--transcription {
@@ -15,23 +17,27 @@
             background-color: rgba(66, 212, 186, 0.1);
         }
     }
-}
-
-td {
-    vertical-align: top;
-    padding: 20px 5px;
-    .transcription--turn,
-    .transcription--speaker {
-        @include noTextSelection();
-    }
-    &.transcription-speaker-sentence {
-        cursor: pointer;
-        &:hover {
-            background-color: $blueLight;
+    td {
+        vertical-align: top;
+        padding: 20px 5px;
+        .transcription--turn {
+            font-size: 14px;
+            line-height: 20px;
+            color: $greyLight;
         }
-    }
-    &.transcription--speaker-td {
-        text-align: right;
+        .transcription--turn,
+        .transcription--speaker {
+            @include noTextSelection();
+        }
+        &.transcription-speaker-sentence {
+            cursor: pointer;
+            &:hover {
+                background-color: $blueLight;
+            }
+        }
+        &.transcription--speaker-td {
+            text-align: right;
+        }
     }
 }
 
@@ -40,9 +46,6 @@ td {
     &.isplaying {
         @include noTextSelection();
         background: yellow;
-        font-size: 18px;
-        font-weight: 700;
-        padding: 2px 0;
     }
 }
 
@@ -102,4 +105,16 @@ td {
             }
         }
     }
+}
+
+.transcription-edition--textarea {
+    display: inline-block;
+    min-height: 60px;
+    padding: 5px;
+    font-size: 16px;
+    font-family: $comfortaa;
+    line-height: 20px;
+    border: 1px solid #ccc;
+    background-color: transparent;
+    width: 100%;
 }

@@ -72,7 +72,8 @@ h3 {
     display: none;
 }
 
-button {
+button,
+a {
     cursor: pointer;
     display: inline-block;
     padding: 0;
@@ -125,6 +126,12 @@ button {
                 }
                 &.icon__trash {
                     @include maskImage('../img/trash-big.svg');
+                }
+                &.icon__transcription {
+                    @include maskImage('../img/abstract.svg');
+                }
+                &.icon__backto {
+                    @include maskImage('../img/backto.svg');
                 }
             }
             &:hover {
@@ -193,6 +200,24 @@ button {
                 &:hover {
                     background-color: rgba(0, 0, 0, 0.8);
                     @include buttonShadowHover();
+                }
+            }
+            &.blue {
+                .label {
+                    color: $blueChart;
+                }
+                .icon {
+                    background-color: $blueChart;
+                }
+                &:hover {
+                    background-color: $blueChart;
+                    @include buttonShadowHover();
+                    .label {
+                        color: #fff;
+                    }
+                    .icon {
+                        background-color: #fff;
+                    }
                 }
             }
         }
@@ -446,7 +471,7 @@ button {
     min-height: 100px;
 }
 
-input,
+input[type="text"],
 select {
     display: inline-block;
     padding: 5px;
