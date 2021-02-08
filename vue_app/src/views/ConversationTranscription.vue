@@ -14,8 +14,25 @@
           <!-- Highlights -->
         <div class="conversation-infos-item">
           <div class="conversation-infos-item--label">
-            <span class="conversation-infos-item--icon conversation-infos-item--icon__highlights"></span>
-            <span class="conversation-infos-item--title">Highlights</span>
+            <div class="flex row">
+              <span class="conversation-infos-item--icon conversation-infos-item--icon__highlights"></span>
+              <span class="conversation-infos-item--title flex1">Highlights</span>
+              <span class="conversation-infos-item--icon conversation-infos-item--icon__colors"></span>
+              <span class="conversation-infos-item--icon conversation-infos-item--icon__visible"></span>
+            </div>
+
+
+            <div class="flex col transcription-options" v-if="!!highlightsOptions && highlightsOptions.length > 0">
+              <div class="flex row transcription-options--item" v-for="hl in highlightsOptions" :key="hl._id">
+                  <span class="transcription-options--item-label flex1">{{ hl.label }}</span>
+                  <span class="transcription-options--item-color" :style="`background-color: ${hl.color};`"></span>
+                  <button 
+                    class="transcription-options--item-checkbox"
+                    :class="hl.selected ? 'selected' : ''"
+                    @click="updateHighlight(hl)"
+                  ></button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -138,7 +155,8 @@ export default {
         split: true
       },
       clickTime: 0,
-      selectionObj: null
+      selectionObj: null,
+      highlightsOptions: []
     }
   },
   async mounted () {
@@ -179,11 +197,6 @@ export default {
     
     this.initTextSelection()
   },
-  watch: {
-    currentTime (data) {
-
-    }
-  },
   computed: {
     convo () {
       return this.$store.getters.conversationById(this.convoId)
@@ -212,7 +225,73 @@ export default {
       return this.convoLoaded && this.speakersArray.length > 0 
     }
   },
+  watch: {
+    'convo.highlights' (data) {
+      console.log('highlights:',data)
+      if (data.length > 0) {
+        data.map(hl => {
+          if (this.highlightsOptions.findIndex(hlo => hlo._id === hl._id) >= 0) {
+            this.highlightsOptions(this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)).label = hl.label
+            this.highlightsOptions(this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)).color = hl.color
+
+          } else {
+            this.highlightsOptions.push({...hl, selected: false})
+          }
+        })
+      }
+    }
+  },
   methods: {
+    updateHighlight (hl) {
+      console.log(hl)
+      let isVisible = false
+      let hlItemIndex = this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)
+      if (hlItemIndex >= 0) {
+        this.highlightsOptions[hlItemIndex].selected = !this.highlightsOptions[hlItemIndex].selected
+        isVisible = this.highlightsOptions[hlItemIndex].selected
+      }
+      let wordsInHighlight = []
+      if (this.convo.text.length > 0) {
+        this.convo.text.map(turn => {
+          if(turn.words.length > 0) {
+            let wordInHl = turn.words.filter(word => word.highlights.indexOf(hl._id) >= 0)
+            if (wordInHl.length > 0) {
+              wordInHl.map(winhl => {
+                wordsInHighlight.push(winhl.wid)
+              })
+            }
+          }
+        })
+      }
+      if (isVisible) {
+        this.setHighlight(wordsInHighlight, hl.color)
+      } else {
+        
+        this.unsetHighlight(wordsInHighlight)
+      }
+    },
+    setHighlight (wordsInHighlight, color) {
+      // Get all the word_ids that are in the highlight
+      let allWords = document.getElementsByClassName('transcription--word')
+      for(let span of allWords) {
+        let wordId = span.getAttribute('data-word-id')
+        if(wordsInHighlight.indexOf(wordId) >= 0) {
+          span.classList.add("highlighted")
+          span.setAttribute('style',`background-color:${color};`)
+        }
+      }
+    },
+    unsetHighlight (wordsInHighlight) {
+      // Get all the word_ids that are in the highlight
+      let allWords = document.getElementsByClassName('transcription--word')
+      for(let span of allWords) {
+        let wordId = span.getAttribute('data-word-id')
+        if(wordsInHighlight.indexOf(wordId) >= 0) {
+          span.classList.remove("highlighted")
+          span.setAttribute('style', '')
+        }
+      }
+    },
     initTextSelection () {
       if (window.Event) {
         document.captureEvents(Event.MOUSEMOVE)

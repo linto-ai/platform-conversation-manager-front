@@ -42,7 +42,11 @@
             <span class="conversation-infos-item--icon conversation-infos-item--icon__sharedwith"></span>
             <span class="conversation-infos-item--title">Shared with</span>
           </div>
-          <span class="conversation-infos-item--value" v-for="user in convo.sharedWith" :key="user.name">{{ user.name }}</span>
+          <ul class="conversation-infos-item--list">
+            <li v-for="user in convo.sharedWith" :key="user.name">
+              <span class="conversation-infos-item--value" >{{ user.name }}</span>
+            </li>
+          </ul>
         </div>
         <!-- Documents -->
         <div class="conversation-infos-item">

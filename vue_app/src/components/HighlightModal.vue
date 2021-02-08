@@ -6,12 +6,6 @@
         <button @click="close()">close</button>
       </div>
       <div class="modal--body">
-        <div v-if="convosLoaded">Content :</div>
-        <ul>
-          <li v-for="hl in convoHighlights" :key="hl._id"> {{ hl.label }} ({{hl.items.length}})</li>
-        </ul>
-
-        <button @click="test()">Clic</button>
       </div>
       <div class="modal--footer">
       </div>
@@ -30,6 +24,9 @@ export default {
     }
   },
   computed: {
+    dataLoaded () {
+      return this.convosLoaded
+    },
     convoHighlights () {
       return this.$store.getters.highlightsByConversationId(this.conversationId)
     }
@@ -47,14 +44,7 @@ export default {
     },
     async dispatchConversations () {
       this.convosLoaded = await this.$options.filters.dispatchStore('getConversations')
-    },
-    test () {
-      const startElem = this.content[0]
-      const endElem = this.content[this.content.length - 1]
-
-      console.log('>>', startElem, endElem)
     }
-    
   }
 }
 </script>

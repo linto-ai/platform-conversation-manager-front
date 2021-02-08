@@ -53,10 +53,16 @@
                     @include maskImage('../img/documents.svg');
                 }
                 &.conversation-infos-item--icon__keywords {
-                    @include maskImage('../img/keyword.svg');
+                    @include maskImage('../img/keywords.svg');
                 }
                 &.conversation-infos-item--icon__highlights {
                     @include maskImage('../img/marker.svg');
+                }
+                &.conversation-infos-item--icon__colors {
+                    @include maskImage('../img/colors.svg');
+                }
+                &.conversation-infos-item--icon__visible {
+                    @include maskImage('../img/visible.svg');
                 }
             }
             .conversation-infos-item--title {
@@ -66,7 +72,14 @@
                 font-weight: 600;
                 font-size: 18px;
                 vertical-align: top;
-                ;
+            }
+        }
+        .conversation-infos-item--list {
+            padding: 0;
+            margin: 5px 0;
+            list-style-type: none;
+            li {
+                padding: 5px 0;
             }
         }
         .conversation-infos-item--value {

@@ -292,6 +292,9 @@ a {
                 background-color: rgba(254, 52, 110, 0.5);
                 @include maskImage('../img/close.svg');
             }
+            &.icon--list {
+                @include maskImage('../img/agenda.svg');
+            }
         }
         &:hover,
         &.active {

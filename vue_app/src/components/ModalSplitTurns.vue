@@ -9,47 +9,66 @@
       </div>
       <div class="modal--body" v-if="dataLoaded">
         <p><strong>You are about to split the following turns : </strong></p>
-        <div class="modal-merge-content flex col">
+        <div class="modal-split-content flex col">
             <!-- before split -->
            <div 
             v-if="splitContentArray.before_split !== null"
-            class="modal-merge-content--item"
+            class="modal-content--item"
           >
-            <span class="modal-merge-content--speaker" >
-              <!--
-                {{ speakers[speakers.findIndex(spk => spk.speaker_id === splitContentArray.before_split.speaker_id)].speaker_name }} :
-              -->
-              {{ splitContentArray.before_split.speaker_id }}
+            <span class="modal-content--speaker" >
+              {{ speakers[speakers.findIndex(spk => spk.speaker_id === splitContentArray.before_split.speaker_id)].speaker_name }} :
             </span>
-            <span class="modal-merge-content--text">{{ splitContentArray.before_split.text }}</span>
+            <span class="modal-content--text">{{ splitContentArray.before_split.text }}</span>
           </div>
           <!-- split -->
           <div 
             v-if="splitContentArray.split !== null"
-            class="modal-merge-content--item flex row"
+            class="modal-content--item flex row"
           >
           <div class="flex col">
-            <select 
-              v-model="newSpeaker.value"
-              :class="newSpeaker.error !== null ? 'error' : ''"
-            >
-              <option  v-for="spk in speakers" :key="spk.speaker_id" :value="spk.speaker_id">{{ spk.speaker_name }}</option>
-            </select>
+            <span class="modal-content--label">{{ selectSpeakerList ? 'Select a speaker' : 'Add a speaker'}}</span>
+            <div class="flex row">
+              <!-- new speaker select -->
+              
+              <select 
+                v-if="selectSpeakerList"
+                v-model="newSpeaker.value"
+                :class="newSpeaker.error !== null ? 'error' : ''"
+              >
+                <option  v-for="spk in speakers" :key="spk.speaker_id" :value="spk.speaker_id">{{ spk.speaker_name }}</option>
+              </select>
+              <!-- new speaker input -->
+              <input 
+                v-else 
+                type="text" 
+                v-model="newSpeaker.value"
+                :class="newSpeaker.error !== null ? 'error' : ''"
+              >
+              <button 
+                class="btn--icon" 
+                @click="newSpeakerMode()" 
+                style="margin:0 10px;" 
+                id="modal-select-speaker"
+                :data-desc="selectSpeakerList ? 'Create a new speaker' : 'Select a speaker' "
+              >
+                <span class="icon"
+                :class="selectSpeakerList ? 'icon--add' : 'icon--list'"></span>
+              </button>
+              <span class="modal-content--speaker" > :</span>
+            </div>
             <span class="error-field" v-if="newSpeaker.error !== null">{{newSpeaker.error }}</span>
           </div>
-          <span class="modal-merge-content--text">{{ splitContentArray.split.text }}</span>
+          <span class="modal-content--text">{{ splitContentArray.split.text }}</span>
         </div>
         <!-- After split -->
           <div 
             v-if="splitContentArray.after_split !== null"
-            class="modal-merge-content--item"
+            class="modal-content--item"
           >
-            <span class="modal-merge-content--speaker" >
-              <!-- {{ speakers[speakers.findIndex(spk => spk.speaker_id === splitContentArray.after_split.speaker_id)].speaker_name }} :
-              --> 
-              {{ splitContentArray.after_split.speaker_id }}
+            <span class="modal-content--speaker" >
+              {{ speakers[speakers.findIndex(spk => spk.speaker_id === splitContentArray.after_split.speaker_id)].speaker_name }} :
               </span>
-            <span class="modal-merge-content--text">{{ splitContentArray.after_split.text }}</span>
+            <span class="modal-content--text">{{ splitContentArray.after_split.text }}</span>
           </div>
 
         </div>
@@ -61,7 +80,7 @@
         </button>
 
         <button class="btn btn--txt-icon green" @click="splitTurn()">
-          <span class="label">Merge</span>
+          <span class="label">Split</span>
           <span class="icon icon__apply"></span>
         </button>
       </div>
@@ -88,7 +107,8 @@ export default {
         value: '',
         error: null,
         valid: false
-      }
+      },
+      selectSpeakerList: true
     }
   },
   async mounted () {
@@ -112,6 +132,14 @@ export default {
     }
   },
   methods: {
+    newSpeakerMode () {
+      this.selectSpeakerList = !this.selectSpeakerList
+      this.newSpeaker = {
+        value: '',
+        error: null,
+        valid: false
+      }
+    },
     checkForm () {
       if (this.newSpeaker.value.length === 0) {
         this.newSpeaker.error = 'This field is required'
@@ -121,10 +149,51 @@ export default {
         this.newSpeaker.valid = true
       }
     },
+    async addSpeaker (speakerName) {
+      try {
+        const addSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/speakers`, {
+          method: 'post', 
+          data: {
+            convoid: this.convoId,
+            speakername: speakerName
+          }
+        })
+        console.log('addSpeaker', addSpeaker)
+        if (addSpeaker.status === 200) {
+          await this.dispatchStore('getConversations')
+          return true
+        } else {
+          // todo error
+        }  
+      } catch (error) {
+        console.error(erorr)
+        return false
+      }
+    },
     async splitTurn () {
       try {
         this.checkForm()
         if (this.newSpeaker.valid === true) {
+          
+          // create a new speaker
+          if (!this.selectSpeakerList) {
+            const createSpeaker = await this.addSpeaker(this.newSpeaker.value)
+            if (!createSpeaker) {
+              throw createSpeaker
+            } else {
+              await this.dispatchStore('getConversations')
+              let newSpk = this.conversation.speakers.find(spk => spk.speaker_name === this.newSpeaker.value)
+              if (!!newSpk.speaker_id && !!newSpk.speaker_name) {
+                this.selectSpeakerList = true
+                this.newSpeaker = {
+                  value: newSpk.speaker_id,
+                  valid: true,
+                  error: null
+                }
+              }
+            }
+          } 
+          
           const payload = {
             convoid: this.convoId,
             speakerid: this.newSpeaker.value,
@@ -143,7 +212,7 @@ export default {
           } else {
             throw splitTurns
           }
-        }  
+        }
       } catch (error) {
         console.error(error)
         // Todo error handler
