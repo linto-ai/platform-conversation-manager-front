@@ -3,13 +3,27 @@
     <!-- LEFT PART -->
     <div class="flex col conversation-infos-container">
       <h2>Transcription display options</h2>
+       currentTurn:{{ currentTurn }}
       <div class="conversation-infos-items">
           <!-- Keywords -->
         <div class="conversation-infos-item">
           <div class="conversation-infos-item--label">
-            <span class="conversation-infos-item--icon conversation-infos-item--icon__keywords"></span>
-            <span class="conversation-infos-item--title">Keywords</span>
+            <div class="flex row">
+              <span class="conversation-infos-item--icon conversation-infos-item--icon__keywords"></span>
+              <span class="conversation-infos-item--title flex1">Keywords</span>
+              <span class="conversation-infos-item--icon conversation-infos-item--icon__visible"></span>
+            </div>
           </div>
+          <div class="flex col transcription-options" v-if="!!keywordsOptions && keywordsOptions.length > 0">
+              <div class="flex row transcription-options--item" v-for="kw in keywordsOptions" :key="kw._id">
+                  <span class="transcription-options--item-label flex1">{{ kw.label }}</span>
+                  <button 
+                    class="transcription-options--item-checkbox"
+                    :class="kw.selected ? 'selected' : ''"
+                    @click="updateKeyword(kw)"
+                  ></button>
+              </div>
+            </div>
         </div>
           <!-- Highlights -->
         <div class="conversation-infos-item">
@@ -20,18 +34,22 @@
               <span class="conversation-infos-item--icon conversation-infos-item--icon__colors"></span>
               <span class="conversation-infos-item--icon conversation-infos-item--icon__visible"></span>
             </div>
+          </div>
 
-
-            <div class="flex col transcription-options" v-if="!!highlightsOptions && highlightsOptions.length > 0">
-              <div class="flex row transcription-options--item" v-for="hl in highlightsOptions" :key="hl._id">
-                  <span class="transcription-options--item-label flex1">{{ hl.label }}</span>
-                  <span class="transcription-options--item-color" :style="`background-color: ${hl.color};`"></span>
-                  <button 
-                    class="transcription-options--item-checkbox"
-                    :class="hl.selected ? 'selected' : ''"
-                    @click="updateHighlight(hl)"
-                  ></button>
-              </div>
+          <div class="flex col transcription-options" v-if="!!highlightsOptions && highlightsOptions.length > 0">
+            <div class="flex row transcription-options--item" v-for="hl in highlightsOptions" :key="hl._id">
+              <span class="transcription-options--item-label flex1">{{ hl.label }}</span>
+              <input 
+                type="color" 
+                :value="hl.color" 
+                class="transcription-options--item-color"
+                @change="updateHighlightColor($event, hl)"
+              >
+              <button 
+                class="transcription-options--item-checkbox"
+                :class="hl.selected ? 'selected' : ''"
+                @click="updateHighlight(hl)"
+              ></button>
             </div>
           </div>
         </div>
@@ -156,7 +174,8 @@ export default {
       },
       clickTime: 0,
       selectionObj: null,
-      highlightsOptions: []
+      highlightsOptions: [],
+      keywordsOptions: []
     }
   },
   async mounted () {
@@ -216,7 +235,7 @@ export default {
     currentTurn () {
       for(let turn of this.convo.text) {
         if (this.currentTime >= turn.words[0].stime && this.currentTime <= turn.words[turn.words.length-1].etime) {
-          return turn.turn_number
+          return turn.pos
         }
       }
       return 0
@@ -227,29 +246,100 @@ export default {
   },
   watch: {
     'convo.highlights' (data) {
-      console.log('highlights:',data)
       if (data.length > 0) {
         data.map(hl => {
           if (this.highlightsOptions.findIndex(hlo => hlo._id === hl._id) >= 0) {
-            this.highlightsOptions(this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)).label = hl.label
-            this.highlightsOptions(this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)).color = hl.color
+            this.highlightsOptions[this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)].label = hl.label
+            this.highlightsOptions[this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)].color = hl.color
 
           } else {
             this.highlightsOptions.push({...hl, selected: false})
           }
         })
       }
-    }
+    },
+    'convo.keywords' (data) {
+      if (data.length > 0) {
+        data.map(kw => {
+          if (this.keywordsOptions.findIndex(kwo => kwo._id === kw._id) >= 0) {
+            
+            this.keywordsOptions[this.keywordsOptions.findIndex(kwo => kwo._id === kw._id)].label = kw.label
+          } else {
+            this.keywordsOptions.push({...kw, selected: false})
+          }
+        })
+      }
+    },
   },
   methods: {
+    updateHighlightColor (event, hl) {
+      const color = event.srcElement.value
+      console.log('target color', color)
+
+      let hlOptionIndex = this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)
+      if(hlOptionIndex >= 0) {
+        this.highlightsOptions[hlOptionIndex].color = color
+        if(this.highlightsOptions[hlOptionIndex].selected) {
+          this.resetHighlights(hl)
+        }
+      }
+    },
+    updateKeyword (kw) {
+      let isVisible = false
+      let kwItemIndex = this.keywordsOptions.findIndex(kwo => kwo._id === kw._id)
+      if (kwItemIndex >= 0) {
+        this.keywordsOptions[kwItemIndex].selected = !this.keywordsOptions[kwItemIndex].selected
+        isVisible = this.keywordsOptions[kwItemIndex].selected
+      }
+      // Get words that are in selected highlight
+      let wordsInKeywords = []
+      if (this.convo.text.length > 0) {
+        this.convo.text.map(turn => {
+          if(turn.words.length > 0) {
+            let wordInKw = turn.words.filter(word => word.keywords.indexOf(kw._id) >= 0)
+            if (wordInKw.length > 0) {
+              wordInKw.map(winhl => {
+                wordsInKeywords.push(winhl.wid)
+              })
+            }
+          }
+        })
+      }
+      console.log('wordsInKeywords', wordsInKeywords)
+      if (isVisible) {
+        this.setKeyword(wordsInKeywords)
+      } else {
+        this.unsetKeyword(wordsInKeywords)
+      }
+    },
+    setKeyword (wordsInKeywords) {
+      let allWords = document.getElementsByClassName('transcription--word')
+      // Set highlights
+      for(let span of allWords) {
+        let wordId = span.getAttribute('data-word-id')
+        if(wordsInKeywords.indexOf(wordId) >= 0) {
+          span.classList.add("keyword")
+        }
+      }
+    },
+    unsetKeyword (wordsInKeywords) {
+      let allWords = document.getElementsByClassName('transcription--word')
+      // Set highlights
+      for(let span of allWords) {
+        let wordId = span.getAttribute('data-word-id')
+        if(wordsInKeywords.indexOf(wordId) >= 0) {
+          span.classList.remove("keyword")
+        }
+      }
+    },
     updateHighlight (hl) {
-      console.log(hl)
       let isVisible = false
       let hlItemIndex = this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)
       if (hlItemIndex >= 0) {
         this.highlightsOptions[hlItemIndex].selected = !this.highlightsOptions[hlItemIndex].selected
         isVisible = this.highlightsOptions[hlItemIndex].selected
       }
+      // Get words that are in selected highlight
       let wordsInHighlight = []
       if (this.convo.text.length > 0) {
         this.convo.text.map(turn => {
@@ -271,8 +361,8 @@ export default {
       }
     },
     setHighlight (wordsInHighlight, color) {
-      // Get all the word_ids that are in the highlight
       let allWords = document.getElementsByClassName('transcription--word')
+      // Set highlights
       for(let span of allWords) {
         let wordId = span.getAttribute('data-word-id')
         if(wordsInHighlight.indexOf(wordId) >= 0) {
@@ -282,8 +372,9 @@ export default {
       }
     },
     unsetHighlight (wordsInHighlight) {
-      // Get all the word_ids that are in the highlight
       let allWords = document.getElementsByClassName('transcription--word')
+
+      // Remove highlights
       for(let span of allWords) {
         let wordId = span.getAttribute('data-word-id')
         if(wordsInHighlight.indexOf(wordId) >= 0) {
@@ -291,6 +382,30 @@ export default {
           span.setAttribute('style', '')
         }
       }
+
+      // Reset visible highlights
+      let activeHighlights = this.highlightsOptions.filter(hl => hl.selected === true)
+      if(activeHighlights.length > 0) {
+        for(let hl of activeHighlights) {
+          this.resetHighlights(hl)
+        }
+      }
+    },
+    resetHighlights (hl) {
+      let wordsInHighlight = []
+      if (this.convo.text.length > 0) {
+        this.convo.text.map(turn => {
+          if(turn.words.length > 0) {
+            let wordInHl = turn.words.filter(word => word.highlights.indexOf(hl._id) >= 0)
+            if (wordInHl.length > 0) {
+              wordInHl.map(winhl => {
+                wordsInHighlight.push(winhl.wid)
+              })
+            }
+          }
+        })
+      }
+      this.setHighlight(wordsInHighlight, hl.color)
     },
     initTextSelection () {
       if (window.Event) {
@@ -358,23 +473,6 @@ export default {
           }
         }
       })
-    },
-    showToolBox (selectionObj) {
-      const bounce = selectionObj.startWord.getBoundingClientRect()
-      const offsetX = bounce.x
-      const offsetY = bounce.y
-      // Show toolbox and place it
-      bus.$emit('show_selected_toolbox', {
-        selectionObj,
-        offsetX,
-        offsetY,
-        convoId: this.convoId
-      })
-      // cancel "onmouseup" event bind
-      const transcription = document.getElementById('transcription')
-      transcription.onmouseup = (e) => {
-        e.preventDefault()
-      }
     },
     setTextSelection (selectionObj) {
       this.cancelTextSelection()
@@ -452,6 +550,23 @@ export default {
         })
       }
     },
+    showToolBox (selectionObj) {
+      const bounce = selectionObj.startWord.getBoundingClientRect()
+      const offsetX = bounce.x
+      const offsetY = bounce.y
+      // Show toolbox and place it
+      bus.$emit('show_selected_toolbox', {
+        selectionObj,
+        offsetX,
+        offsetY,
+        convoId: this.convoId
+      })
+      // cancel "onmouseup" event bind
+      const transcription = document.getElementById('transcription')
+      transcription.onmouseup = (e) => {
+        e.preventDefault()
+      }
+    },
     closeToolBox () {
       if (window.getSelection) {
         if (window.getSelection().empty) {  // Chrome
@@ -469,7 +584,6 @@ export default {
     },
     
     editSpeaker (event, speaker, turnId) {
-      
       if (this.speakerEdit === false) {
         const btn = event.target
         const bounce = btn.getBoundingClientRect()
