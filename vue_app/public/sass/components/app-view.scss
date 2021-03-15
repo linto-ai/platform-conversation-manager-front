@@ -6,8 +6,12 @@
 
 .app-view-content {
     overflow: auto;
-    padding: 40px;
-    &.no-padding-left {
-        padding: 0 40px 0 0;
+    padding: 0;
+    &>div {
+        padding: 0 40px;
+        overflow: hidden;
+        &.no-padding-left {
+            padding: 0 40px 0 0;
+        }
     }
 }

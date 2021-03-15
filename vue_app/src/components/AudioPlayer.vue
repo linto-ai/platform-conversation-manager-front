@@ -28,12 +28,13 @@
     </div>
     <span class="audio-player--timeline__time"> {{ currentTimeHMS }} / {{ durationHMS }}</span>
     
+    <button class="keyboard-commands-btn" @click="showKeyboardCommands()"></button>
   </div>
 </template>
 <script>
 import { bus } from '../main.js'
 export default {
-  props: ['audioFile', 'duration'],
+  props: ['audioFile', 'duration', 'nbTurns', 'currentTurn', 'editionMode'],
   data () {
     return {
       currentTime: 0,
@@ -86,6 +87,28 @@ export default {
       bus.$on('audio_player_play', (data) => {
         this.play()
       })
+
+      bus.$on('audio_player_play_pause', (data) => {
+        if(!this.editionMode) {
+          if(this.audioIsPlaying) {
+           this.pause()
+          } else {
+            this.play()
+          }
+        }
+      })
+
+      bus.$on('audio_player_next_turn', () => {
+        if(!this.editionMode) {
+          this.playNextSpeaker()
+        }
+      })
+
+      bus.$on('audio_player_prev_turn', () => {
+        if(!this.editionMode) {
+          this.playPrevSpeaker()
+        }
+      })
     },
     playFrom(time) {
       this.pause()
@@ -114,14 +137,54 @@ export default {
       const sec =  Math.floor(time % 60)
       return `${hour < 10  ? '0' + hour : hour}:${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec }`
     },
-    playPrevSpeaker () {
-      bus.$emit('audio_player_prev_speaker', {})
-    },
-    playNextSpeaker () {
-      bus.$emit('audio_player_next_speaker', {})
-    },
     updateTimeline (e) {
       this.prctTimelineSelected = e.srcElement.value
+    },
+    playPrevSpeaker () {
+      const tr = document.getElementsByClassName('active--speaker')
+      if (tr.length === 0) {
+        this.playFrom(this.currentTime)
+      } else {
+        if (parseInt(this.currentTurn) === 1) {
+          this.playFrom(0)
+        } else {
+          const items = document.getElementsByClassName('table-speaker--turn')
+          for(let item of items) {
+            const targetTurn = parseInt(this.currentTurn) - 1
+            const itemTurn = item.getAttribute('data-turn')
+            if (parseInt(itemTurn) === parseInt(targetTurn)) {
+              const targetTime = item.getAttribute('data-stime')
+              this.playFrom(targetTime)
+            }
+          }
+        }
+      }
+    },
+    playNextSpeaker () {
+      const tr = document.getElementsByClassName('active--speaker')
+      console.log('>' ,tr)
+      console.log(' currnetTurn >' , this.currentTurn)
+      if (tr.length === 0) {
+        this.playFrom(this.currentTime)
+      } else {
+        if (parseInt(this.currentTurn) === this.nbTurns - 1) {
+          return
+        } else {
+          const items = document.getElementsByClassName('table-speaker--turn')
+          for(let item of items) {
+            const targetTurn = parseInt(this.currentTurn) + 1
+            console.log('targetTurn', targetTurn)
+            const itemTurn = item.getAttribute('data-turn')
+            if (parseInt(itemTurn) === parseInt(targetTurn)) {
+              const targetTime = item.getAttribute('data-stime')
+              this.playFrom(targetTime)
+            }
+          }
+        }
+      }
+    },
+    showKeyboardCommands () {
+      bus.$emit('show_player_commands', {})
     }
   }
 }

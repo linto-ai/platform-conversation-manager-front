@@ -2,17 +2,17 @@
   <div id="selected-text-toolbox" :class="show ? 'visible' : 'hidden'" :style="`top: ${parseInt(offsetY)- 45}px; left: ${parseInt(offsetX) - 100}px;`">
     <button 
       class="selected-text-toolbox--btn highlight" 
-      v-if="options.keywords === true">Keyword</button>
+      v-if="!!options.keywords && options.keywords === true">Keyword</button>
     <button 
       class="selected-text-toolbox--btn highlight" 
-      v-if="options.highlight === true"
+      v-if="!!options.highlight && options.highlight === true"
       @click="openHighlightModal()">Highlight</button>
     <button 
       class="selected-text-toolbox--btn comment"
-      v-if="options.comment === true">Comment</button>
+      v-if="!!options.comment && options.comment === true">Comment</button>
     <button 
       class="selected-text-toolbox--btn comment"
-      v-if="options.split === true" 
+      v-if="!!options.split && options.split === true" 
       @click="openSplitModal()">Split turns</button>
     
     <button class="selected-text-toolbox--btn close" @click="closeToolbox()"></button>
@@ -21,19 +21,24 @@
 <script>
 import { bus } from '../main.js'
 export default {
-  props: ['content', 'selection', 'conversationId', 'options'],
+  props: ['content', 'selection', 'conversationId'],
   data () {
     return {
       show: false,
       selectionObj: null,
       offsetX: 0,
-      offsetY: 0
+      offsetY: 0,
+      options: {
+        comment: false,
+        highlight: false,
+        keywords: false,
+        split: false
+      }
     }
   },
   watch: {
     show (data) {
       if (data === true) {
-        console.log(this.content)
         if (this.content.length === 1) {
           this.showKeywordOption = true
 
@@ -48,11 +53,11 @@ export default {
   mounted () {
     bus.$on('show_selected_toolbox', (data) => {
       this.show = true
-      console.log(data)
       this.selectionObj = data.selectionObj
       this.offsetX = data.offsetX
       this.offsetY = data.offsetY
       this.convoId = data.convoId
+      this.options = data.toolBoxOption
     })
   },
   methods: {

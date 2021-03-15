@@ -193,7 +193,9 @@
                <span class="icon icon--edit"></span>
             </button>
           </div>
-          <div v-if="!keywordsEdit" class="conversation-settings-item--content" id="keywords-content">{{ convo.keywords.base }}</div>
+          <div v-if="!keywordsEdit" class="conversation-settings-item--content" id="keywords-content">
+            <span v-for="kw in convo.keywords.base" :key="kw.label">{{ kw.label }}</span>
+          </div>
           <div v-else class="flex col flex1">
             <textarea v-model="convo.keywords.edit" class="textarea flex1"></textarea>
             <div class="textarea--btns flex row">

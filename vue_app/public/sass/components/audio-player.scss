@@ -128,3 +128,29 @@
 
 
 /* End Timeline */
+
+.keyboard-commands-btn {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background-color: #eee;
+    margin-left: 10px;
+    position: relative;
+    @include borderRadius(3px);
+    @include transition(all 0.3s ease);
+    &:after {
+        content: "";
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-color: $greenChart;
+        @include maskImage('../img/keyboard.svg');
+        @include transition(all 0.3s ease);
+    }
+    &:hover {
+        background-color: #fff;
+    }
+}

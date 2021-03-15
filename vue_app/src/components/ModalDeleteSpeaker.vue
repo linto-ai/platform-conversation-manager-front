@@ -98,18 +98,29 @@ export default {
       bus.$emit(`update_speaker`, {})
     },
     async deleteSpeaker () {
-      // todo try catch
-      const deleteSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/speakers/${this.speakerId}`, {
-        method: 'delete',
-        data: {
-          convoid: this.convoId,
-          speakerid: this.speakerId
+      try {
+        const deleteSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/speakers/${this.speakerId}`, {
+          method: 'delete',
+          data: {
+            convoid: this.convoId,
+            speakerid: this.speakerId
+          }
+        })
+        if (deleteSpeaker.status === 200 && !!deleteSpeaker.data.msg ) {
+          bus.$emit('app_notif', {
+            status: 'success',
+            message: deleteSpeaker.data.msg,
+            timeout: null
+          })
+          this.closeModal()
         }
-      })
-      if (deleteSpeaker.status === 200) {
-        this.closeModal()
+      } catch (error) {
+        bus.$emit('app_notif', {
+          status: 'error',
+          message: !!error.data.msg ? error.data.msg : 'Error on deleting speaker',
+          timeout: null
+        })
       }
-      
     },
     async mergeSpeakers () {
       try {
@@ -121,26 +132,32 @@ export default {
             speakerid: this.speakerId
           }
         })
-        if (updateSpeaker.status === 200) {
+        if (updateSpeaker.status === 200 && !!updateSpeaker.data.msg) {
           this.closeModal()
-          // todo > notification
+          bus.$emit('app_notif', {
+            status: 'success',
+            message: updateSpeaker.data.msg,
+            timeout: null
+          })
         } else {
-          // todo > notification
+          throw updateSpeaker
         }  
       } catch (error) {
-        console.error(error)
-         // todo error
+        bus.$emit('app_notif', {
+          status: 'error',
+          message: !!error.data.msg ? error.data.msg : 'Error on deleting speaker',
+          timeout: null
+        })
       }
     },
     async dispatchStore (topic) {
-      console.log('trigger la ')
       try {
         const resp = await this.$options.filters.dispatchStore(topic)
         if (resp.status === 'success') {
           this.convoLoaded = true
         }
       } catch (error) {
-        console.log(error)
+        console.error(error)
       }
     }
   }

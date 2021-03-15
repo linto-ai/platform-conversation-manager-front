@@ -141,7 +141,7 @@ a {
                 &:before {
                     display: inline-block;
                     content: "";
-                    @include animateClick();
+                    /*@include animateClick();*/
                 }
             }
             &.green {
@@ -284,6 +284,12 @@ a {
             &.icon--add {
                 @include maskImage('../img/plus.svg');
             }
+            &.icon--apply {
+                @include maskImage('../img/apply.svg');
+            }
+            &.icon--cancel {
+                @include maskImage('../img/cancel.svg');
+            }
             &.icon--remove {
                 background-color: rgba(254, 52, 110, 0.5);
                 @include maskImage('../img/trash.svg');
@@ -294,6 +300,11 @@ a {
             }
             &.icon--list {
                 @include maskImage('../img/agenda.svg');
+            }
+        }
+        &.grey {
+            .icon {
+                background-color: #656565;
             }
         }
         &:hover,
@@ -307,13 +318,16 @@ a {
                     background-color: $redChart;
                 }
             }
+            &.grey {
+                background-color: #656565;
+            }
         }
     }
     &:focus {
         &:before {
             display: inline-block;
             content: "";
-            @include animateClick();
+            /*@include animateClick();*/
         }
     }
     &.btn--inline {
@@ -453,6 +467,7 @@ a {
     font-weight: 700;
     font-size: 16px;
     padding: 10px 0 5px 0;
+    color: $blueChart;
 }
 
 .textarea {

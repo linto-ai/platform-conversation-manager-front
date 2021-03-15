@@ -10,8 +10,7 @@
         <div class="modal--body" v-if="convoLoaded">
           <p><strong>You are about to merge the following turns : </strong></p>
           
-          <div class="modal-merge-content flex col" v-html="contentFromSelection"></div>
-          
+          <div class="modal-merge-content flex col" v-html="contentFromSelection"></div>     
           <div class="flex row">
             <span class="form--label">Select the speaker for those turns:</span><br/>
             <select 
@@ -68,11 +67,6 @@ export default {
       
       await this.dispatchStore('getConversations')
       this.modalShow = true
-      this.setModalContent ()
-
-      setTimeout(() => {
-        console.log(this.speakersArray)
-      }, 500);
     })
   },
   computed: {
@@ -112,7 +106,7 @@ export default {
       if (turns.length > 0) {
         turns.map(turn => {
           const speakerName = this.speakersArray[this.speakersArray.findIndex(spk => spk.speaker_id === turn.speaker_id)].speaker_name
-          contentHTML += `<div class="modal-merge-content--item"><span class="modal-merge-content--speaker">${speakerName} :</span><span class="modal-merge-content--text">`
+          contentHTML += `<div class="modal-content--item"><span class="modal-content--speaker">${speakerName} :</span><span class="modal-content--text">`
           if (turn.words.length > 0) {
             turn.words.map( word => {
               contentHTML += word.word + ' '
@@ -127,13 +121,6 @@ export default {
   methods: {
     closeModal () {
       this.modalShow = false
-    },
-    setModalContent () {
-      const turns = this.conversation.text.filter(txt => this.turnIds.indexOf(txt.turn_id) >= 0)
-      console.log(turns)
-    },
-    getTextFromTurn (turnId) {
-      
     },
     async dispatchStore (topic) {
       try {
@@ -160,22 +147,30 @@ export default {
         if(this.selectedSpeaker.valid === true) {
           const payload = {
             turnids: this.turnIds,
-            convoid: this.convoId,
             speakerid: this.selectedSpeaker.value.speaker_id
           }
-          const request = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turn/${this.turnIds[0]}`, {
+          const mergeTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/merge`, {
             method: 'patch',
             data: payload
           })
-          if(request.status === 200) {
+          if(mergeTurns.status === 200 && !!mergeTurns.data.msg) {
             await this.dispatchStore('getConversations')
             this.closeModal()
+             bus.$emit('app_notif', {
+              status: 'success',
+              message: mergeTurns.data.msg,
+              timeout: 3000
+            })
           } else {
-            throw 'error on merging turns'
+            throw request
           }
         }
       } catch (error) {
-        console.error(error)
+         bus.$emit('app_notif', {
+          status: 'error',
+          message: !!error.data.msg ? error.data.msg : 'Error on merging turns',
+          timeout: null
+        })
       }
     }
   }

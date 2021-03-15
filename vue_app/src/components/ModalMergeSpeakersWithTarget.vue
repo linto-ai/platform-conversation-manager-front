@@ -54,22 +54,34 @@ export default {
       bus.$emit(`update_speaker`, {})
     },
     async mergeSpeakers () {
-      const updateSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/${this.speakerId}`, {
-        method: 'put',
-        data: {
-          convoid: this.convoId,
-          newspeakerid: this.targetSpeaker.speaker_id,
-          speakerid: this.speaker.speaker_id
-        }
-      })
-      if (updateSpeaker.status === 200) {
-        this.closeModal()
-        console.log('update user : success')
-        // todo > notification
-      } else {
-        console.log('update user : error')
-        // todo > notification
+      try {
+        const updateSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/${this.speakerId}`, {
+          method: 'put',
+          data: {
+            convoid: this.convoId,
+            newspeakerid: this.targetSpeaker.speaker_id,
+            speakerid: this.speaker.speaker_id
+          }
+        })
+        if (updateSpeaker.status === 200 && !!updateSpeaker.data.msg) {
+          this.closeModal()
+          bus.$emit('app_notif', {
+            status: 'success',
+            message: updateSpeaker.data.msg,
+            timeout: null
+          })
+          // todo > notification
+        } else {
+         throw updateSpeaker
+        }  
+      } catch (error) {
+        bus.$emit('app_notif', {
+          status: 'error',
+          message: !!updateSpeaker.data.msg ? updateSpeaker.data.msg : 'Error on merging speakers sentences',
+          timeout: null
+        })
       }
+      
     }
   }
 }

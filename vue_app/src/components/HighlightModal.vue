@@ -34,7 +34,6 @@ export default {
   mounted () {
     bus.$on('highlight_modal_open', (data) => {
       this.content = data.content
-      console.log(data)
       this.showModal = true
     })
   },

@@ -111,10 +111,10 @@
          
           <div class="edit-frame-options" :class="showMergeTurnsOptions ? 'opened' : 'closed'">
             <div 
-              v-if="turn !== null && conversation.text.length > 0"
+              v-if="turn !== null && !! conversation.text && conversation.text.length > 0"
               class="flex col"
             >
-              <button class="edit-frame-options--btn prev" v-if="turn.pos !== 0" >Merge with previous turn</button>
+              <button class="edit-frame-options--btn prev" v-if="turn.pos !== 0" @click="mergePreviousTurn()">Merge with previous turn</button>
               <button class="edit-frame-options--btn next" v-if="turn.pos !== conversation.text.length - 1" @click="mergeNextTurn()">Merge with next turn</button>
             </div>
           </div>
@@ -159,20 +159,16 @@ export default {
         if(this.showFrame) {
           this.closeFrame()
         }
-        await this.dispatchStore('getConversations')
         this.showFrame = true
         this.convoId = data.conversationId
         this.speaker = data.speaker
         this.turnId = data.turnId
+        await this.dispatchStore('getConversations')
         if (!!data.speakers && data.speakers.length > 0) {
           this.speakers = data.speakers.filter(spk => spk.speaker_name !== this.speaker.speaker_name)
         } else {
           this.speakers = data.speakers
         }
-
-        setTimeout(()=>{
-          console.log(this.turn)
-        }, 1000)
     })
     
   },
@@ -184,7 +180,11 @@ export default {
       return this.$store.getters.conversationById(this.convoId)
     },
     turn () {
-      return this.conversation.text.filter(txt => txt.turn_id === this.turnId)[0] || null
+      if(!!this.conversation.text) {
+        return this.conversation.text.filter(txt => txt.turn_id === this.turnId)[0] || null
+      } else {
+        return []
+      }
     },
     newSpeakerName () {
       if(this.newSpeakerValue.length > 0) {
@@ -245,27 +245,25 @@ export default {
     },
     async updateSpeaker(targetSpeaker) {
       try {
-        
         this.testSelectedSpeaker(targetSpeaker)
         if(targetSpeaker.valid === true) {
           let updateSpeakerName = null
           if(this.editSpeakerMode === 'turn') {
-            updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turn/${targetSpeaker.value.speaker_id}`, {
+            updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turn/${this.turnId}`, {
               method: 'put', 
               data: {
-                speakerid: targetSpeaker.value.speaker_id,
-                convoid: this.convoId,
-                turnid: this.turnId
+                speakerid: targetSpeaker.value.speaker_id
               }
             })
           } else if (this.editSpeakerMode === 'transcription') {
-            updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/${targetSpeaker.value.speaker_id}`, {
-              method: 'put', 
-              data: {
+            const payload = {
                 speakerid: this.speaker.speaker_id,
                 convoid: this.convoId,
                 newspeakerid: targetSpeaker.value.speaker_id
               }
+            updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/${this.speaker.speaker_id}`, {
+              method: 'put', 
+              data: payload
             })
           }
           // If success
@@ -349,14 +347,26 @@ export default {
     /* END SPEAKERS */
     /* MERGE */
     async mergeNextTurn () {
-
        const targetTurn = this.conversation.text.filter(txt => txt.pos === this.turn.pos + 1)
-       bus.$emit('merge_sentences_modal', {
-          turnids: [this.turn.turn_id, targetTurn[0].turn_id],
-          convoid: this.convoId,
-          speakerid: this.speaker.speaker_id
-        })
+       if (targetTurn.length > 0) {
+        bus.$emit('merge_sentences_modal', {
+            turnids: [this.turn.turn_id, targetTurn[0].turn_id],
+            convoid: this.convoId,
+            speakerid: this.speaker.speaker_id
+          })
+        }
         this.closeFrame()
+    },
+    async mergePreviousTurn () {
+       const targetTurn = this.conversation.text.filter(txt => txt.pos === this.turn.pos - 1)
+       if (targetTurn.length > 0) {
+          bus.$emit('merge_sentences_modal', {
+            turnids: [this.turn.turn_id, targetTurn[0].turn_id],
+            convoid: this.convoId,
+            speakerid: this.speaker.speaker_id
+          })  
+      }
+      this.closeFrame()
     },
     /* END MERGE */
 

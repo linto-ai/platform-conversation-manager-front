@@ -29,7 +29,6 @@
             <span class="modal-content--label">{{ selectSpeakerList ? 'Select a speaker' : 'Add a speaker'}}</span>
             <div class="flex row">
               <!-- new speaker select -->
-              
               <select 
                 v-if="selectSpeakerList"
                 v-model="newSpeaker.value"
@@ -154,19 +153,16 @@ export default {
         const addSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/speakers`, {
           method: 'post', 
           data: {
-            convoid: this.convoId,
             speakername: speakerName
           }
         })
-        console.log('addSpeaker', addSpeaker)
-        if (addSpeaker.status === 200) {
+        if (addSpeaker.status === 200 || addSpeaker.status === 202) {
           await this.dispatchStore('getConversations')
           return true
         } else {
-          // todo error
+          throw addSpeaker
         }  
       } catch (error) {
-        console.error(erorr)
         return false
       }
     },
@@ -174,7 +170,6 @@ export default {
       try {
         this.checkForm()
         if (this.newSpeaker.valid === true) {
-          
           // create a new speaker
           if (!this.selectSpeakerList) {
             const createSpeaker = await this.addSpeaker(this.newSpeaker.value)
@@ -182,8 +177,11 @@ export default {
               throw createSpeaker
             } else {
               await this.dispatchStore('getConversations')
+              
               let newSpk = this.conversation.speakers.find(spk => spk.speaker_name === this.newSpeaker.value)
+              
               if (!!newSpk.speaker_id && !!newSpk.speaker_name) {
+                console.log('newSpk', newSpk)
                 this.selectSpeakerList = true
                 this.newSpeaker = {
                   value: newSpk.speaker_id,
@@ -201,21 +199,30 @@ export default {
             turnids: this.selectionObj.startTurnId === this.selectionObj.endTurnId ? [this.selectionObj.startTurnId] : [this.selectionObj.startTurnId, this.selectionObj.endTurnId] ,
             wordids: [this.selectionObj.startWordId, this.selectionObj.endWordId]
           }
-          console.log('payload ', payload)
-          const splitTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turnsplit/${this.speakerId}`, {
+          
+          const splitTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/split`, {
             method: 'put',
             data: payload 
           })
-          if(splitTurns.data.status === '200'|| splitTurns.data.status === 200) {
+          console.log('splitTurn', splitTurns)
+          if((splitTurns.status === 200|| splitTurns.status === 202) && !!splitTurns.data.msg) {
             this.closeModal()
             this.dispatchStore('getConversations')
+            bus.$emit('app_notif', {
+              status: 'success',
+              message: splitTurns.data.msg,
+              timeout: 3000
+            })
           } else {
             throw splitTurns
           }
         }
       } catch (error) {
-        console.error(error)
-        // Todo error handler
+        bus.$emit('app_notif', {
+          status: 'error',
+          message: !!error.data.msg ? error.data.msg : 'Error on spliting turns',
+          timeout: null
+        })
       }
       
     },
@@ -286,12 +293,8 @@ export default {
         }
       }
       else if(this.selectionObj.startTurnId !== this.selectionObj.endTurnId && this.conversation.text.length > 0) {
-
-        console.log('multiple turns')
         const startTurn = this.conversation.text.find(turn => turn.turn_id === this.selectionObj.startTurnId)
         const endTurn = this.conversation.text.find(turn => turn.turn_id === this.selectionObj.endTurnId)
-        console.log('startTurn', startTurn)
-        console.log('endTurn', endTurn)
         // Before split 
         if(!!startTurn.words && !!startTurn.turn_id && !!startTurn.speaker_id && startTurn.words.length > 0) {
           startTurn.words.map(word => {
@@ -313,14 +316,11 @@ export default {
          // Split
         let selectedTurns = this.conversation.text.filter(turn => turn.pos >= this.selectionObj.startTurnPosition && turn.pos <= this.selectionObj.endTurnPosition) 
         if (selectedTurns.length > 0 ) {
-          console.log('Enter split')
+          
           selectedTurns.map(turn => {
             const turnPos = parseInt(turn.pos)
-            console.log('Turn >', turn)
-            console.log('turnPos =', turnPos, 'startTurnId = ', parseInt(this.selectionObj.startTurnId), turnPos === parseInt(this.selectionObj.startTurnId))
             // start turn
             if (turnPos === parseInt(this.selectionObj.startTurnPosition) && turn.words.length > 0) {
-              console.log('Start turn')
               turn.words.map(word => {
                 if(parseInt(word.pos) >= parseInt(this.selectionObj.startWordPosition)) {
                   if(this.splitContentArray.split !== null) {
@@ -339,8 +339,6 @@ export default {
             }
             // between turns
             if (turnPos > parseInt(this.selectionObj.startTurnPosition) && turnPos < parseInt(this.selectionObj.endTurnPosition) && turn.words.length > 0) {
-              console.log('middle turn')
-
               turn.words.map(word => {
                 if(this.splitContentArray.split !== null) {
                   this.splitContentArray.split.text += word.word + ' '
@@ -395,7 +393,6 @@ export default {
             }
           })
         }
-        console.log('this.splitContentArray', this.splitContentArray)
       }
     },
     async dispatchStore (topic) {
