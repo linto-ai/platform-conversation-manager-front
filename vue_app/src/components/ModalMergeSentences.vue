@@ -10,7 +10,7 @@
         <div class="modal--body" v-if="convoLoaded">
           <p><strong>You are about to merge the following turns : </strong></p>
           
-          <div class="modal-merge-content flex col" v-html="contentFromSelection"></div>     
+          <div class="modal-merge-content flex col" v-html="contentFromSelection"></div>
           <div class="flex row">
             <span class="form--label">Select the speaker for those turns:</span><br/>
             <select 
@@ -52,6 +52,7 @@ export default {
       modalShow: false,
       convoId: null,
       turnIds: [],
+      positions: [],
       convoLoaded: false,
       selectedSpeaker: {
         value: '',
@@ -64,6 +65,8 @@ export default {
     bus.$on('merge_sentences_modal', async (data) => {
       this.turnIds = data.turnids
       this.convoId = data.convoid
+      this.positions = data.positions
+      
       
       await this.dispatchStore('getConversations')
       this.modalShow = true
@@ -101,7 +104,7 @@ export default {
       return speakers
     },
     contentFromSelection () {
-      const turns = this.conversation.text.filter(txt => this.turnIds.indexOf(txt.turn_id) >= 0)
+      const turns = this.conversation.text.filter(turn => parseInt(turn.pos) >= parseInt(this.positions[0]) && parseInt(turn.pos) <= parseInt(this.positions[1]))
       let contentHTML = ''
       if (turns.length > 0) {
         turns.map(turn => {
@@ -147,6 +150,7 @@ export default {
         if(this.selectedSpeaker.valid === true) {
           const payload = {
             turnids: this.turnIds,
+            positions: this.positions,
             speakerid: this.selectedSpeaker.value.speaker_id
           }
           const mergeTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/merge`, {

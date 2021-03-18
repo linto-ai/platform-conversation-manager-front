@@ -181,7 +181,6 @@ export default {
               let newSpk = this.conversation.speakers.find(spk => spk.speaker_name === this.newSpeaker.value)
               
               if (!!newSpk.speaker_id && !!newSpk.speaker_name) {
-                console.log('newSpk', newSpk)
                 this.selectSpeakerList = true
                 this.newSpeaker = {
                   value: newSpk.speaker_id,
@@ -195,11 +194,13 @@ export default {
           const payload = {
             convoid: this.convoId,
             speakerid: this.newSpeaker.value,
-            positions: this.selectionObj.startTurnId === this.selectionObj.endTurnId ? [this.selectionObj.startTurnPosition] : [this.selectionObj.startTurnPosition, this.selectionObj.endTurnPosition],
+            positions: parseInt(this.selectionObj.startTurnId) === parseInt(this.selectionObj.endTurnId) ? [parseInt(this.selectionObj.startTurnPosition)] : [parseInt(this.selectionObj.startTurnPosition), parseInt(this.selectionObj.endTurnPosition)],
             turnids: this.selectionObj.startTurnId === this.selectionObj.endTurnId ? [this.selectionObj.startTurnId] : [this.selectionObj.startTurnId, this.selectionObj.endTurnId] ,
             wordids: [this.selectionObj.startWordId, this.selectionObj.endWordId]
           }
           
+
+          console.log(payload)
           const splitTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/split`, {
             method: 'put',
             data: payload 

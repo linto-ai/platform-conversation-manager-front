@@ -9,6 +9,7 @@
         :data-turn="turn.pos"
         :class="!editionMode && currentTurn === turn.pos ? 'active active--speaker' : ''"
         class="table-speaker--turn"
+        :id="`turn-${turn.pos}`"
       >
       
         <td><span class="transcription--turn">{{ turn.pos }}</span></td>
@@ -48,7 +49,7 @@
 <script>
 import { bus } from '../main.js'
 export default {
-  props: ['convoText', 'editionMode', 'currentTime', 'currentTurn', 'speakersArray', 'convoSpeakers', 'convoId'],
+  props: ['convoText', 'editionMode', 'currentTime', 'currentTurn', 'speakersArray', 'convoSpeakers', 'convoId', 'convoIsFiltered'],
   data () {
     return {
       refresh: 1,
@@ -72,11 +73,24 @@ export default {
     bus.$on('update_speaker', async (data) => {
       this.speakerEdit = false
     })
-    
+    bus.$on('scroll_to_current', () => {
+      this.scrollToCurrentTurn(this.currentTurn)
+    })
     this.initTextSelection()
-
+  },
+  watch: {
+    currentTurn (data) {
+      // on playing : smooth scroll to current turn 
+      const transcription = document.getElementById('transcription')
+      this.scrollToCurrentTurn(data)
+    }
   },
   methods: {
+      scrollToCurrentTurn (pos) {
+        const targetTurn = document.getElementById(`turn-${pos}`)
+          console.log(targetTurn)
+          transcription.scrollTo({top: targetTurn.offsetTop - 200, behavior: 'smooth' })
+      },
      editSpeaker (event, speaker, turnId) {
       if (!this.speakerEdit) {
         const btn = event.target
@@ -102,7 +116,7 @@ export default {
       const transcription = document.getElementById('transcription')
       // text selection event in "transcription" block
       transcription.addEventListener('selectstart', () => {
-        if(!this.editionMode) {
+        if(!this.editionMode && !this.convoIsFiltered) {
           let startClick = new Date()
           transcription.onmouseup = (e) => {
             const stopClick = new Date()
@@ -201,7 +215,8 @@ export default {
             comment: false,
             highlight: false,
             keywords: false,
-            split: true
+            split: true,
+            merge: true
           }
           for(let parent of allParents) {
             if (!!parent.childNodes && parent.childNodes.length > 0) {
@@ -245,7 +260,7 @@ export default {
       }
     },
     showToolBox (selectionObj) {
-      const bounce = selectionObj.startWord.getBoundingClientRect()
+      const bounce = selectionObj.endWord.getBoundingClientRect()
       const offsetX = bounce.x
       const offsetY = bounce.y
       // Show toolbox and place it

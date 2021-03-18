@@ -1,6 +1,7 @@
 <template>
   <div class="flex row no-padding-left" v-if="dataLoaded">
     <!-- LEFT PART -->
+    {{ convoIsFiltered }}
     <div class="flex col conversation-infos-container">
       <h2>Transcription display options</h2>
       <div class="conversation-infos-items">
@@ -88,16 +89,35 @@
           <span class="icon icon--apply"></span>
         </button>
       </div>
+      <!-- FILTERS -->
+      <div class="transcription-filters flex row">
+          <!-- by speaker -->
+          <select id="filter-speaker" v-model="convoFilter.speaker">
+            <option v-for="spk in convo.speakers" :key="spk.speaker_id" :value="spk.speaker_id">{{ spk.speaker_name }}</option>
+            <option value="">None</option>
+          </select>
+          <!-- by highlights -->
+          <select id="filter-highlights" v-model="convoFilter.highlights">
+            <option v-for="hl in convo.highlights" :key="hl._id" :value="hl._id">{{ hl.label }}</option>
+            <option value="">None</option>
+          </select>
+          <!-- by keywords -->
+          <select id="filter-highlights" v-model="convoFilter.keywords">
+            <option v-for="kw in convo.keywords" :key="kw._id" :value="kw._id">{{ kw.label }}</option>
+            <option value="">None</option>
+          </select>
+      </div>
       <!-- TRANSCRIPTION -->
       <Transcription 
         :currentTurn="currentTurn" 
         :currentTime="currentTime" 
-        :convoText="convo.text"
+        :convoText="convoText"
         :convoId="convo._id"
         :convoSpeakers="convo.speakers"
         :editionMode="editionMode" 
         :speakersArray="speakersArray"
         :key="refreshConversation"
+        :convoIsFiltered="convoIsFiltered"
         v-if="!!convo.text && convo.text.length > 0 && speakersArray.length > 0"
       ></Transcription>
        <div> 
@@ -106,8 +126,11 @@
           :audioFile="convo.audio" 
           :duration="convo.duration" 
           :editionMode="editionMode" 
-          :nbTurns="convo.text.length"
-          :currentTurn="currentTurn"
+          :nbTurns="convo.text.length" 
+          :currentTurn="currentTurn" 
+          :convoIsFiltered="convoIsFiltered"
+          :convoText="convoText"
+
         ></AudioPlayer>
       </div>
     </div>
@@ -154,7 +177,13 @@ export default {
       highlightsOptions: [],
       keywordsOptions: [],
       refreshConversation: 1,
-      editConvoTmp: []
+      editConvoTmp: [],
+      filterSpeaker: '',
+      convoFilter: {
+        speaker: '',
+        highlights:'',
+        keywords:''
+      }
     }
   },
   async mounted () {
@@ -195,23 +224,76 @@ export default {
     },
     currentTurn () {
       let currentTurn = 0
-      
       if(!!this.convo && !!this.convo.text && this.convo.text.length > 0) {
-        for(let turn of this.convo.text) {
-          if (!!this.currentTime && turn.words.length > 0) {
-            if (!!turn.words[0].stime && !!turn.words[turn.words.length-1].etime && this.currentTime >= turn.words[0].stime && this.currentTime <= turn.words[turn.words.length-1].etime) {
-              currentTurn = turn.pos
+        
+        for(let i = 0; i < this.convo.text.length; i++) {
+          if (
+            i !== this.convo.text.length - 1 && 
+            !!this.currentTime && 
+            this.convo.text[i].words.length > 0 && 
+            this.convo.text[i+1].words.length > 0) {
+            if (
+              !!this.convo.text[i].words[0].stime && 
+              !!this.convo.text[i+1].words[0].stime && 
+              this.currentTime >= this.convo.text[i].words[0].stime && 
+              this.currentTime < this.convo.text[i+1].words[0].stime) {
+              currentTurn = this.convo.text[i].pos
             }
-          } 
+          }
         }
       } 
       return currentTurn
     },
     dataLoaded () {
       return this.convoLoaded && this.speakersArray.length > 0 
+    },
+    convoText () {
+      let convoText = this.convo.text
+
+      // Filter by speaker
+      if (this.convoFilter.speaker !== '') {
+        convoText = convoText.filter(turn => turn.speaker_id === this.convoFilter.speaker)
+      }
+      
+      // Filter by highlights
+      if(this.convoFilter.highlights !== '') {
+        let convoTextHl = []
+        convoText.map(turn => {
+          if(!!turn.words && turn.words.length > 0) {
+            turn.words.map(word => {
+              if (word.highlights.indexOf(this.convoFilter.highlights) >= 0 && convoTextHl.indexOf(turn) < 0) {
+                convoTextHl.push(turn)
+              }
+            })
+          }
+        })
+        convoText = convoTextHl
+      }
+
+      // Filter by keywords
+      if(this.convoFilter.keywords !== '') {
+        let convoTextKw = []
+        convoText.map(turn => {
+          if(!!turn.words && turn.words.length > 0) {
+            turn.words.map(word => {
+              if (word.keywords.indexOf(this.convoFilter.keywords) >= 0 && convoTextKw.indexOf(turn) < 0) {
+                convoTextKw.push(turn)
+              }
+            })
+          }
+        })
+        convoText = convoTextKw
+      }
+      return convoText
+    },
+    convoIsFiltered () {
+      return (this.convoFilter.speaker !== '' || this.convoFilter.highlights !== '' || this.convoFilter.keywords !== '' )
     }
   },
   watch: {
+    convoText (data) {
+      console.log('convoText', data)
+    },
     'convo.highlights' (data) {
       if (data.length > 0) {
         data.map(hl => {

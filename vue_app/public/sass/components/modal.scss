@@ -59,6 +59,8 @@
     margin-bottom: 20px;
     padding: 10px;
     background-color: #dffcff;
+    max-height: 400px;
+    overflow: auto;
     .modal-content--item {
         display: flex;
         flex-direction: row;

@@ -22,7 +22,13 @@
     </div>
 
     <div class="audio-player--timeline flex1">
-      <input type="range" min="0" class="audio-player--timeline__input" @mousedown="pause()" :value="prctTimeline" @change="playFromTimeLine($event)" @input="updateTimeline($event)"/>
+      <input 
+        type="range" 
+        class="audio-player--timeline__input" 
+        @click="playFromTimeLine($event)" 
+        @change="playFromTimeLine($event)" 
+        @input="updateTimeline($event)"
+      />
       <span class="audio-player--timeline__played" :style="`width: ${prctTimelineSelected}%`"></span>
       <span class="audio-player--timeline__bg"></span>
     </div>
@@ -34,13 +40,14 @@
 <script>
 import { bus } from '../main.js'
 export default {
-  props: ['audioFile', 'duration', 'nbTurns', 'currentTurn', 'editionMode'],
+  props: ['audioFile', 'duration', 'nbTurns', 'currentTurn', 'editionMode', 'convoIsFiltered', 'convoText'],
   data () {
     return {
       currentTime: 0,
       prctTimelineSelected: 0,
       audioIsPlaying: false,
-      audioPlayer: null
+      audioPlayer: null,
+      playSegments: []
     }
   },
   mounted () {
@@ -60,6 +67,33 @@ export default {
   watch:  {
     prctTimeline (data) {
       this.prctTimelineSelected = data
+    },
+    audioIsPlaying (data) {
+      if(data) {
+        bus.$emit('scroll_to_current', {})
+      }
+    },
+    convoText (data) {
+      this.pause()
+      if (this.convoIsFiltered) {
+
+        this.playSegments = []
+        if(data.length > 0) {
+          data.map(turn => {
+            if(turn.words.length > 0) {
+              this.playSegments.push({
+                stime: turn.words[0].stime,
+                etime: turn.words[turn.words.length - 1].etime
+              })
+            }
+          })
+        }
+      }
+      // TODO
+      console.log('segments', this.playSegments)
+      if(this.playSegments.length > 0) {
+        this.audioPlayer.currentTime = this.playSegments[0].stime
+      }
     }
   },
   methods : {
@@ -113,11 +147,14 @@ export default {
     playFrom(time) {
       this.pause()
       this.audioPlayer.currentTime = time
-      this.play()
+      setTimeout(()=>{
+        this.play()
+      }, 100)
     },
     playFromTimeLine (e) {
       const val = e.srcElement.value
       const targetTime = parseInt(val * this.duration / 100)
+      console.log(targetTime)
       this.playFrom(targetTime)
     },
     updateTime () {
@@ -131,7 +168,6 @@ export default {
       this.audioPlayer.pause()
     },
     timeToHMS (time) {
-      const totalSeconds = parseInt(time)
       const hour = Math.floor(time / (60 * 60))
       const min = Math.floor(time / 60)
       const sec =  Math.floor(time % 60)

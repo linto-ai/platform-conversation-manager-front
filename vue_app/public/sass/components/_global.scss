@@ -386,6 +386,9 @@ a {
                     color: #fff;
                 }
             }
+            &.border {
+                border: 1px solid $greenChart;
+            }
         }
     }
 }

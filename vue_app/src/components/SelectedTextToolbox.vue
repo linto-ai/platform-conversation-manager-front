@@ -14,6 +14,10 @@
       class="selected-text-toolbox--btn comment"
       v-if="!!options.split && options.split === true" 
       @click="openSplitModal()">Split turns</button>
+      <button 
+      class="selected-text-toolbox--btn comment"
+      v-if="!!options.split && options.merge === true" 
+      @click="openMergeModal()">Merge turns</button>
     
     <button class="selected-text-toolbox--btn close" @click="closeToolbox()"></button>
   </div>
@@ -32,7 +36,8 @@ export default {
         comment: false,
         highlight: false,
         keywords: false,
-        split: false
+        split: false,
+        merge: false
       }
     }
   },
@@ -52,12 +57,15 @@ export default {
   },
   mounted () {
     bus.$on('show_selected_toolbox', (data) => {
+      console.log('>>', data)
       this.show = true
       this.selectionObj = data.selectionObj
       this.offsetX = data.offsetX
       this.offsetY = data.offsetY
       this.convoId = data.convoId
       this.options = data.toolBoxOption
+
+
     })
   },
   methods: {
@@ -79,6 +87,18 @@ export default {
         selectionObj: this.selectionObj,
         convoId: this.convoId
       })
+    },
+    openMergeModal() {
+      console.log({
+          turnids: [this.selectionObj.startTurnId, this.selectionObj.endTurnId],
+          positions: [this.selectionObj.startTurnPosition, this.selectionObj.endTurnPosition],
+          convoid: this.convoId
+        })
+      bus.$emit('merge_sentences_modal', {
+          turnids: [this.selectionObj.startTurnId, this.selectionObj.endTurnId],
+          positions: [this.selectionObj.startTurnPosition, this.selectionObj.endTurnPosition],
+          convoid: this.convoId
+        })
     }
   }
 }

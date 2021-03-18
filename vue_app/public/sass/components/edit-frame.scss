@@ -45,6 +45,8 @@
         position: relative;
         text-align: left;
         vertical-align: top;
+        background-color: $greenChart;
+        color: #fff;
         &:before {
             content: "";
             display: inline-block;
@@ -58,48 +60,6 @@
         &.edit-speaker {
             &:before {
                 @include maskImage('../img/speakers.svg');
-            }
-        }
-        &.merge-turns {
-            &:before {
-                @include maskImage('../img/merge.svg');
-            }
-        }
-        &:after {
-            content: "";
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            position: absolute;
-            top: 5px;
-            left: 100%;
-            margin-left: -30px;
-            @include maskImage('../img/filter-arrow.svg');
-            background-color: $greenChart;
-        }
-        &.closed {
-            color: $greenChart;
-            &:after {
-                transform: rotate(-90deg);
-            }
-        }
-        &.opened {
-            background-color: $greenChart;
-            color: #fff;
-            &:after {
-                background-color: #fff;
-            }
-            &:before {
-                background-color: #fff;
-            }
-        }
-        &:hover {
-            background-color: $greenChart;
-            color: #fff;
-            &:after {
-                background-color: #fff;
-            }
-            &:before {
                 background-color: #fff;
             }
         }
@@ -109,16 +69,9 @@
 .edit-frame-options {
     @include transition(all 0.3s ease);
     overflow: hidden;
-    &.closed {
-        height: 0px;
-        padding: 0;
-        border: none;
-    }
-    &.opened {
-        height: 180px;
-        padding: 10px;
-        border: 1px solid #ccc;
-    }
+    min-height: 180px;
+    padding: 10px 10px 0 10px;
+    border: 1px solid #ccc;
     .edit-frame-options--item {
         margin-bottom: 10px;
         .edit-frame-option--label {
@@ -140,50 +93,7 @@
     }
     .edit-frame--btns {
         margin-top: 10px;
-        justify-content: space-evenly;
-    }
-    .edit-frame-options--btn {
-        margin-bottom: 10px;
-        display: inline-block;
-        font-size: 15px;
-        font-weight: 600;
-        color: $blueChart;
-        border: 1px solid $blueChart;
-        text-align: left;
-        padding: 0 10px;
-        height: 30px;
-        line-height: 30px;
-        width: 100%;
-        position: relative;
-        @include transition(all 0.3s ease);
-        &:after {
-            content: '';
-            display: inline-block;
-            width: 28px;
-            height: 28px;
-            position: absolute;
-            top: 0;
-            left: 100%;
-            margin-left: -40px;
-            background-color: $blueChart;
-        }
-        &.prev {
-            &:after {
-                @include maskImage('../img/merge-previous.svg');
-            }
-        }
-        &.next {
-            &:after {
-                @include maskImage('../img/merge-next.svg');
-            }
-        }
-        &:hover {
-            background-color: $blueChart;
-            color: #fff;
-            &:after {
-                background-color: #fff;
-            }
-        }
+        justify-content: flex-start;
     }
 }
 

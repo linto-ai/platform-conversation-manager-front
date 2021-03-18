@@ -2,18 +2,15 @@
   <div class="edit-frame flex col" :class="showFrame ? 'visible' : 'hidden'" id="edit-speaker-frame">
     <div v-if="dataLoaded">
       <div class="edit-frame--header">
-        <h3 class="edit-frame--title">Editing turn - {{speaker.speaker_name}}</h3>
+        <h3 class="edit-frame--title">Editing speaker - {{speaker.speaker_name}}</h3>
       </div>
       <div class="edit-frame--body flex col">
         
         <div class="edit-frame-action">
           <!-- Edit speaker BTN -->
           <div class="flex row">
-            <button 
-              @click="showEditSpkOptions = !showEditSpkOptions" 
-              :class="showEditSpkOptions ? 'opened' : 'closed'"
-              class="edit-frame-action--btn edit-speaker flex1" >
-            Edit speaker</button>
+            <span class="edit-frame-action--btn edit-speaker flex1" >
+            Edit speaker</span>
          </div>
           <!-- Edit speaker form-->
           <div class="edit-frame-options radio" :class="showEditSpkOptions ? 'opened' : 'closed'">
@@ -45,7 +42,7 @@
               for="edit-speaker-transcription">For all transcription</label>
             </div>
             <div class="flex col edit-frame-options--item" v-if="!toggleCreateUser">
-              <!-- Select speaker SELECT -->
+              <!-- Select speaker -->
               <div class="flex col">
                 <label class="edit-frame-option--label" for="edit-speaker-name">Select a speaker :</label>
                 <select 
@@ -57,20 +54,23 @@
                 </select>
                 <span class="error-field" v-if="selectedSpeaker.error !== null">{{ selectedSpeaker.error }}</span>
               </div>
-              <div class="flex row edit-frame--btns">
+              <div class="flex row edit-frame--btns" style="margin-bottom: 20px;">
                 <button 
                   class=" btn btn--small blue-dark"
                   @click="showCreateSpeaker()"
                 >
                   <span class="label">Add a speaker</span>
                 </button>
+                
+              </div>
+              <div class="flex row edit-frame--btns">
                 <button 
-                  class=" btn btn--small green"
+                  class=" btn btn--small green border flex1"
                   @click="updateSpeaker(selectedSpeaker)"
                 >
                   <span class="label">Update</span>
                 </button>
-              </div>
+             </div>
             </div>
             <!-- Add a speaker INPUT--> 
             <div class="flex col edit-frame-options--item" v-else>
@@ -83,39 +83,22 @@
               />
               <span class="error-field" v-if="newSpeakerName.error !== null">{{newSpeakerName.error}}</span>
 
-              <div class="flex row edit-frame--btns">
+              <div class="flex row edit-frame--btns" style="margin-bottom: 20px;">
                 <button 
-                  class=" btn btn--small"
+                  class=" btn btn--small blue-dark"
                   @click="hideCreateSpeaker()"
                 >
                   <span class="label">Select a speaker</span>
                 </button>
+              </div>
+              <div class="flex row edit-frame--btns">
                 <button 
-                  class=" btn btn--small green"
-                  
+                  class=" btn btn--small green border flex1" 
+                  @click="addNewSpeaker(newSpeakerName)"
                 >
-                  <span class="label" @click="addNewSpeaker(newSpeakerName)">Update</span>
+                  <span class="label" >Update</span>
                 </button>
               </div>
-            </div>
-          </div>
-          <!-- End edit speaker options -->
-          <!-- Merge turns BTN -->
-          <div class="flex row">
-            <button 
-              @click="showMergeTurnsOptions = !showMergeTurnsOptions"
-              :class="showMergeTurnsOptions ? 'opened' : 'closed'"
-              class="edit-frame-action--btn merge-turns flex1" >
-            Merge turns</button>
-         </div>
-         
-          <div class="edit-frame-options" :class="showMergeTurnsOptions ? 'opened' : 'closed'">
-            <div 
-              v-if="turn !== null && !! conversation.text && conversation.text.length > 0"
-              class="flex col"
-            >
-              <button class="edit-frame-options--btn prev" v-if="turn.pos !== 0" @click="mergePreviousTurn()">Merge with previous turn</button>
-              <button class="edit-frame-options--btn next" v-if="turn.pos !== conversation.text.length - 1" @click="mergeNextTurn()">Merge with next turn</button>
             </div>
           </div>
         </div>
@@ -146,8 +129,7 @@ export default {
         error: null
       },
       newSpeakerValue: '',
-      showEditSpkOptions: false,
-      showMergeTurnsOptions: false,
+      showEditSpkOptions: true,
       toggleCreateUser: false,
       editSpeakerMode: 'turn',
       turnId: null,
@@ -255,6 +237,10 @@ export default {
                 speakerid: targetSpeaker.value.speaker_id
               }
             })
+            if(updateSpeakerName.status === 200) {
+              this.closeFrame()
+              bus.$emit(`refresh_conversation`, {})
+            }
           } else if (this.editSpeakerMode === 'transcription') {
             const payload = {
                 speakerid: this.speaker.speaker_id,
@@ -265,15 +251,13 @@ export default {
               method: 'put', 
               data: payload
             })
-          }
-          // If success
-          if(updateSpeakerName.status === 200) {
-            this.closeFrame()
-            bus.$emit(`refresh_conversation`, {})
+            if(updateSpeakerName.status === 200) {
+              this.closeFrame()
+              bus.$emit(`refresh_conversation`, {})
+            }
           }
         }
-      }
-       catch (error) {
+      } catch (error) {
         console.error('ERR:', error)
       }
     },
@@ -298,7 +282,6 @@ export default {
         } 
         // if speaker doesn't exists in this convesation, create one and update with the created data (id, name)
         else {
-          let updateSpeakerName = null
           let newSpeaker = null
           // create new speaker
           const createSpeaker = await this.createSpeaker(speaker.value.speaker_name)
@@ -345,31 +328,6 @@ export default {
       }
     },
     /* END SPEAKERS */
-    /* MERGE */
-    async mergeNextTurn () {
-       const targetTurn = this.conversation.text.filter(txt => txt.pos === this.turn.pos + 1)
-       if (targetTurn.length > 0) {
-        bus.$emit('merge_sentences_modal', {
-            turnids: [this.turn.turn_id, targetTurn[0].turn_id],
-            convoid: this.convoId,
-            speakerid: this.speaker.speaker_id
-          })
-        }
-        this.closeFrame()
-    },
-    async mergePreviousTurn () {
-       const targetTurn = this.conversation.text.filter(txt => txt.pos === this.turn.pos - 1)
-       if (targetTurn.length > 0) {
-          bus.$emit('merge_sentences_modal', {
-            turnids: [this.turn.turn_id, targetTurn[0].turn_id],
-            convoid: this.convoId,
-            speakerid: this.speaker.speaker_id
-          })  
-      }
-      this.closeFrame()
-    },
-    /* END MERGE */
-
     async dispatchStore (topic) {
       try {
         const resp = await this.$options.filters.dispatchStore(topic)
