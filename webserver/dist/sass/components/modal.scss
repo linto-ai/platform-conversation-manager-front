@@ -1,0 +1,110 @@
+.modal-wrapper {
+    position: absolute;
+    top: 0;
+    height: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 20;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal {
+    width: 100%;
+    max-width: 960px;
+    background: #fff;
+    padding: 40px;
+    @include boxShadow(0, 2px, 4px, 0, rgba(0, 0, 0, 0.3));
+    @include borderRadius(3px);
+}
+
+.modal--header {
+    .title {
+        display: inline-block;
+        font-size: 22px;
+        font-weight: 600;
+        color: $blueChart;
+        border-bottom: 1px solid #ececec;
+        padding-bottom: 20px;
+    }
+}
+
+.modal--body {
+    padding: 20px 0;
+    p {
+        font-size: 16px;
+        line-height: 22px;
+        strong {
+            font-size: 18px;
+            font-weight: 600;
+            color: $redChart;
+        }
+    }
+    border-bottom: 1px solid #ececec;
+}
+
+.modal--footer {
+    padding-top: 20px;
+    justify-content: flex-end;
+    .modal--footer-btn-splitted {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+}
+
+.modal-merge-content,
+.modal-split-content {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #dffcff;
+    max-height: 400px;
+    overflow: auto;
+    .modal-content--item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        border-bottom: 1px solid #ececec;
+        padding: 10px;
+        .modal-content--speaker {
+            font-size: 15px;
+            font-weight: 700;
+            color: $blueChart;
+            white-space: nowrap;
+        }
+        .modal-content--text {
+            padding-left: 10px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .modal-content--label {
+            font-size: 14px;
+            padding: 0 0 3px 0;
+            color: $blueChart;
+            font-style: italic;
+            white-space: nowrap;
+        }
+    }
+}
+
+button#modal-select-speaker {
+    position: relative;
+    &:hover {
+        &:after {
+            content: attr(data-desc);
+            display: inline-block;
+            padding: 5px;
+            position: absolute;
+            top: 35px;
+            left: 0;
+            font-size: 14px;
+            background-color: $greenChart;
+            color: #fff;
+            width: 120px;
+            text-align: center;
+            @include borderRadius(3px);
+            @include boxShadow(0, 1px, 2px, 0, rgba(0, 0, 0, 0.3));
+        }
+    }
+}
