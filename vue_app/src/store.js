@@ -18,6 +18,7 @@ export default new Vuex.Store({
         getConversations: async({ commit, state }) => {
             try {
                 const getConvos = await axios.get(`${process.env.VUE_APP_CONVO_API}/conversations`)
+                console.log('STORe', process.env.VUE_APP_CONVO_API, getConvos)
                 commit('SET_CONVERSATIONS', getConvos.data)
                 return state.conversations
             } catch (error) {

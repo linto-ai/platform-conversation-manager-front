@@ -99,6 +99,7 @@ export default {
   computed: {
     sortedConversations () {
       let sortedArray = this.conversations
+      console.log('>', sortedArray)
       if(sortedArray.length > 0) {
         const key = this.sortBy
         if (this.sortDirection === 'down') {
