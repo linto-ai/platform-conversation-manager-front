@@ -17,6 +17,7 @@ function configureDefaults() {
         dotenv.config() // loads process.env from .env file (if not specified by the system)
         const envdefault = dotenv.parse(fs.readFileSync('.envdefault')) // default usable values
         process.env.WEBSERVER_HTTP_PORT = ifHas(process.env.WEBSERVER_HTTP_PORT, envdefault.WEBSERVER_HTTP_PORT)
+        process.env.API_WHITELIST = ifHas(process.env.API_WHITELIST, envdefault.API_WHITELIST)
         process.env.COMPONENTS = ifHasNotThrow(process.env.COMPONENTS, envdefault.COMPONENTS)
     } catch (e) {
         console.error(debug.namespace, e)

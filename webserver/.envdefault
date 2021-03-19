@@ -1,3 +1,4 @@
 # Components loading in this order
 COMPONENTS = WebServer
 WEBSERVER_HTTP_PORT=9001
+API_WHITELIST=http://localhost:8001,http://localhost:9001,http://dev.linto.local:8001,http://dev.linto.local:9001
