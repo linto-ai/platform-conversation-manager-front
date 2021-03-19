@@ -4,6 +4,7 @@
       <tr 
         v-for="turn in convoText" 
         :key="turn.turn_id" 
+        :data-turn-id="turn.turn_id"
         :data-stime="turn.words.length > 0 ? turn.words[0].stime : '-1' "  
         :data-etime="turn.words.length > 0 ? turn.words[turn.words.length - 1].etime : '-1'"
         :data-turn="turn.pos"
@@ -82,13 +83,12 @@ export default {
     currentTurn (data) {
       // on playing : smooth scroll to current turn 
       const transcription = document.getElementById('transcription')
-      this.scrollToCurrentTurn(data)
+      //this.scrollToCurrentTurn(data)
     }
   },
   methods: {
       scrollToCurrentTurn (pos) {
         const targetTurn = document.getElementById(`turn-${pos}`)
-          console.log(targetTurn)
           transcription.scrollTo({top: targetTurn.offsetTop - 200, behavior: 'smooth' })
       },
      editSpeaker (event, speaker, turnId) {

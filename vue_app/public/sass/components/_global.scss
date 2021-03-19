@@ -500,6 +500,7 @@ select {
     background-color: #fafafa;
     border: 1px solid #ccc;
     min-width: 140px;
+    max-width: 260px;
     @include borderRadius(3px);
     &.error {
         border-color: $redChart;

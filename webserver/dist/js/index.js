@@ -2418,8 +2418,8 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! core-js/modules/es.array.concat */ "./node_modules/core-js/modules/es.array.concat.js");
 /* harmony import */ var core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_concat__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! core-js/modules/es.array.map */ "./node_modules/core-js/modules/es.array.map.js");
-/* harmony import */ var core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_map__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var core_js_modules_es_array_filter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! core-js/modules/es.array.filter */ "./node_modules/core-js/modules/es.array.filter.js");
+/* harmony import */ var core_js_modules_es_array_filter__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(core_js_modules_es_array_filter__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _home_rlopez_projects_linagora_platform_conversation_manager_front_vue_app_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/createForOfIteratorHelper */ "./node_modules/@babel/runtime/helpers/esm/createForOfIteratorHelper.js");
 /* harmony import */ var _main_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../main.js */ "./src/main.js");
 
@@ -2499,23 +2499,25 @@ __webpack_require__.r(__webpack_exports__);
         _main_js__WEBPACK_IMPORTED_MODULE_3__["bus"].$emit('scroll_to_current', {});
       }
     },
-    convoText: function convoText(data) {
-      var _this = this;
-
+    convoText: function convoText(turns) {
       this.pause();
 
       if (this.convoIsFiltered) {
         this.playSegments = [];
 
-        if (data.length > 0) {
-          data.map(function (turn) {
-            if (turn.words.length > 0) {
-              _this.playSegments.push({
-                stime: turn.words[0].stime,
-                etime: turn.words[turn.words.length - 1].etime
+        if (turns.length > 0) {
+          for (var i = 0; i < turns.length; i++) {
+            if (turns[i].words.length > 0) {
+              this.playSegments.push({
+                turnid: turns[i].turn_id,
+                stime: turns[i].words[0].stime,
+                etime: turns[i].words[turns[i].words.length - 1].etime,
+                pos: i,
+                first: i === 0 ? true : false,
+                last: i === turns.length - 1 ? true : false
               });
             }
-          });
+          }
         }
       } // TODO
 
@@ -2529,70 +2531,115 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     initAudioPlayer: function initAudioPlayer() {
-      var _this2 = this;
+      var _this = this;
 
       this.audioPlayer = new Audio();
       this.audioPlayer.src = this.audioFile;
 
       this.audioPlayer.ontimeupdate = function () {
-        _this2.updateTime();
+        _this.updateTime();
       };
 
       this.audioPlayer.addEventListener('playing', function () {
-        _this2.audioIsPlaying = true;
+        _this.audioIsPlaying = true;
       });
       this.audioPlayer.addEventListener('pause', function () {
-        _this2.audioIsPlaying = false;
+        _this.audioIsPlaying = false;
       });
       _main_js__WEBPACK_IMPORTED_MODULE_3__["bus"].$on('audio_player_playfrom', function (data) {
-        _this2.playFrom(data.time);
+        _this.playFrom(data.time);
       });
       _main_js__WEBPACK_IMPORTED_MODULE_3__["bus"].$on('audio_player_pause', function (data) {
-        _this2.pause();
+        _this.pause();
       });
       _main_js__WEBPACK_IMPORTED_MODULE_3__["bus"].$on('audio_player_play', function (data) {
-        _this2.play();
+        _this.play();
       });
       _main_js__WEBPACK_IMPORTED_MODULE_3__["bus"].$on('audio_player_play_pause', function (data) {
-        if (!_this2.editionMode) {
-          if (_this2.audioIsPlaying) {
-            _this2.pause();
+        if (!_this.editionMode) {
+          if (_this.audioIsPlaying) {
+            _this.pause();
           } else {
-            _this2.play();
+            _this.play();
           }
         }
       });
       _main_js__WEBPACK_IMPORTED_MODULE_3__["bus"].$on('audio_player_next_turn', function () {
-        if (!_this2.editionMode) {
-          _this2.playNextSpeaker();
+        if (!_this.editionMode) {
+          _this.playNextSpeaker();
         }
       });
       _main_js__WEBPACK_IMPORTED_MODULE_3__["bus"].$on('audio_player_prev_turn', function () {
-        if (!_this2.editionMode) {
-          _this2.playPrevSpeaker();
+        if (!_this.editionMode) {
+          _this.playPrevSpeaker();
         }
       });
     },
     playFrom: function playFrom(time) {
-      var _this3 = this;
+      var _this2 = this;
 
       this.pause();
       this.audioPlayer.currentTime = time;
       setTimeout(function () {
-        _this3.play();
+        _this2.play();
       }, 100);
     },
     playFromTimeLine: function playFromTimeLine(e) {
       var val = e.srcElement.value;
       var targetTime = parseInt(val * this.duration / 100);
-      console.log(targetTime);
       this.playFrom(targetTime);
     },
     updateTime: function updateTime() {
+      var _this3 = this;
+
       this.currentTime = this.audioPlayer.currentTime;
       _main_js__WEBPACK_IMPORTED_MODULE_3__["bus"].$emit('audio_player_currenttime', {
         time: this.currentTime
       });
+      setTimeout(function () {
+        if (_this3.convoIsFiltered && _this3.convoText.length > 0) {
+          var currentTurn = document.getElementById("turn-".concat(_this3.currentTurn));
+          var currentTurnId = currentTurn.getAttribute('data-turn-id');
+
+          var currentSegment = _this3.playSegments.filter(function (seg) {
+            return seg.turnid === currentTurnId;
+          });
+
+          if (currentSegment.length > 0) {
+            if (_this3.audioPlayer.currentTime >= currentSegment[0].etime) {
+              _this3.playNextSegment(currentSegment);
+            }
+          }
+        }
+      }, 200);
+    },
+    playNextSegment: function playNextSegment(currentSegment) {
+      this.pause();
+
+      if (!currentSegment[0].last) {
+        var currentSegmentPos = currentSegment[0].pos;
+        var targetSegment = this.playSegments.filter(function (seg) {
+          return seg.pos === currentSegmentPos + 1;
+        });
+
+        if (targetSegment.length > 0) {
+          this.playFrom(targetSegment[0].stime);
+        }
+      }
+    },
+    playPreviousSegment: function playPreviousSegment(currentSegment) {
+      this.pause();
+
+      if (!currentSegment[0].first) {
+        var currentSegmentPos = currentSegment[0].pos;
+        var targetSegment = this.playSegments.filter(function (seg) {
+          return seg.pos === currentSegmentPos - 1;
+        });
+
+        if (targetSegment.length > 0) {
+          this.playFrom(targetSegment[0].stime);
+        }
+      }
     },
     play: function play() {
       this.audioPlayer.play();
@@ -2610,72 +2657,88 @@ __webpack_require__.r(__webpack_exports__);
       this.prctTimelineSelected = e.srcElement.value;
     },
     playPrevSpeaker: function playPrevSpeaker() {
-      var tr = document.getElementsByClassName('active--speaker');
+      if (!this.convoIsFiltered) {
+        var tr = document.getElementsByClassName('active--speaker');
 
-      if (tr.length === 0) {
-        this.playFrom(this.currentTime);
-      } else {
-        if (parseInt(this.currentTurn) === 1) {
-          this.playFrom(0);
+        if (tr.length === 0) {
+          this.playFrom(this.currentTime);
         } else {
-          var items = document.getElementsByClassName('table-speaker--turn');
+          if (parseInt(this.currentTurn) === 1) {
+            this.playFrom(0);
+          } else {
+            var items = document.getElementsByClassName('table-speaker--turn');
 
-          var _iterator = Object(_home_rlopez_projects_linagora_platform_conversation_manager_front_vue_app_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper__WEBPACK_IMPORTED_MODULE_2__["default"])(items),
-              _step;
+            var _iterator = Object(_home_rlopez_projects_linagora_platform_conversation_manager_front_vue_app_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper__WEBPACK_IMPORTED_MODULE_2__["default"])(items),
+                _step;
 
-          try {
-            for (_iterator.s(); !(_step = _iterator.n()).done;) {
-              var item = _step.value;
-              var targetTurn = parseInt(this.currentTurn) - 1;
-              var itemTurn = item.getAttribute('data-turn');
+            try {
+              for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                var item = _step.value;
+                var targetTurn = parseInt(this.currentTurn) - 1;
+                var itemTurn = item.getAttribute('data-turn');
 
-              if (parseInt(itemTurn) === parseInt(targetTurn)) {
-                var targetTime = item.getAttribute('data-stime');
-                this.playFrom(targetTime);
+                if (parseInt(itemTurn) === parseInt(targetTurn)) {
+                  var targetTime = item.getAttribute('data-stime');
+                  this.playFrom(targetTime);
+                }
               }
+            } catch (err) {
+              _iterator.e(err);
+            } finally {
+              _iterator.f();
             }
-          } catch (err) {
-            _iterator.e(err);
-          } finally {
-            _iterator.f();
           }
         }
+      } else {
+        var currentTurn = document.getElementById("turn-".concat(this.currentTurn));
+        var currentTurnId = currentTurn.getAttribute('data-turn-id');
+        var currentSegment = this.playSegments.filter(function (seg) {
+          return seg.turnid === currentTurnId;
+        });
+        console.log(currentSegment);
+        this.playPreviousSegment(currentSegment);
       }
     },
     playNextSpeaker: function playNextSpeaker() {
-      var tr = document.getElementsByClassName('active--speaker');
-      console.log('>', tr);
-      console.log(' currnetTurn >', this.currentTurn);
+      if (!this.convoIsFiltered) {
+        var tr = document.getElementsByClassName('active--speaker');
 
-      if (tr.length === 0) {
-        this.playFrom(this.currentTime);
-      } else {
-        if (parseInt(this.currentTurn) === this.nbTurns - 1) {
-          return;
+        if (tr.length === 0) {
+          this.playFrom(this.currentTime);
         } else {
-          var items = document.getElementsByClassName('table-speaker--turn');
+          if (parseInt(this.currentTurn) === this.nbTurns - 1) {
+            return;
+          } else {
+            var items = document.getElementsByClassName('table-speaker--turn');
 
-          var _iterator2 = Object(_home_rlopez_projects_linagora_platform_conversation_manager_front_vue_app_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper__WEBPACK_IMPORTED_MODULE_2__["default"])(items),
-              _step2;
+            var _iterator2 = Object(_home_rlopez_projects_linagora_platform_conversation_manager_front_vue_app_node_modules_babel_runtime_helpers_esm_createForOfIteratorHelper__WEBPACK_IMPORTED_MODULE_2__["default"])(items),
+                _step2;
 
-          try {
-            for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-              var item = _step2.value;
-              var targetTurn = parseInt(this.currentTurn) + 1;
-              console.log('targetTurn', targetTurn);
-              var itemTurn = item.getAttribute('data-turn');
+            try {
+              for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                var item = _step2.value;
+                var targetTurn = parseInt(this.currentTurn) + 1;
+                var itemTurn = item.getAttribute('data-turn');
 
-              if (parseInt(itemTurn) === parseInt(targetTurn)) {
-                var targetTime = item.getAttribute('data-stime');
-                this.playFrom(targetTime);
+                if (parseInt(itemTurn) === parseInt(targetTurn)) {
+                  var targetTime = item.getAttribute('data-stime');
+                  this.playFrom(targetTime);
+                }
               }
+            } catch (err) {
+              _iterator2.e(err);
+            } finally {
+              _iterator2.f();
             }
-          } catch (err) {
-            _iterator2.e(err);
-          } finally {
-            _iterator2.f();
           }
         }
+      } else {
+        var currentTurn = document.getElementById("turn-".concat(this.currentTurn));
+        var currentTurnId = currentTurn.getAttribute('data-turn-id');
+        var currentSegment = this.playSegments.filter(function (seg) {
+          return seg.turnid === currentTurnId;
+        });
+        this.playNextSegment(currentSegment);
       }
     },
     showKeyboardCommands: function showKeyboardCommands() {
@@ -5244,6 +5307,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['convoText', 'editionMode', 'currentTime', 'currentTurn', 'speakersArray', 'convoSpeakers', 'convoId', 'convoIsFiltered'],
@@ -5296,14 +5360,12 @@ __webpack_require__.r(__webpack_exports__);
   watch: {
     currentTurn: function currentTurn(data) {
       // on playing : smooth scroll to current turn 
-      var transcription = document.getElementById('transcription');
-      this.scrollToCurrentTurn(data);
+      var transcription = document.getElementById('transcription'); //this.scrollToCurrentTurn(data)
     }
   },
   methods: {
     scrollToCurrentTurn: function scrollToCurrentTurn(pos) {
       var targetTurn = document.getElementById("turn-".concat(pos));
-      console.log(targetTurn);
       transcription.scrollTo({
         top: targetTurn.offsetTop - 200,
         behavior: 'smooth'
@@ -5638,8 +5700,8 @@ __webpack_require__.r(__webpack_exports__);
   methods: {
     initKeyupHandler: function initKeyupHandler(editionMode) {
       document.addEventListener("keydown", function (event) {
-        console.log(event); // Space > play / pause
-
+        //console.log(event)
+        // Space > play / pause
         if (event.code === 'Space' || event.keyCode === 32) {
           _main_js__WEBPACK_IMPORTED_MODULE_0__["bus"].$emit('audio_player_play_pause', {});
         } // Ctrl + arrow right > play next turn
@@ -6352,6 +6414,24 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -9181,6 +9261,7 @@ var render = function() {
                 ? "active active--speaker"
                 : "",
             attrs: {
+              "data-turn-id": turn.turn_id,
               "data-stime": turn.words.length > 0 ? turn.words[0].stime : "-1",
               "data-etime":
                 turn.words.length > 0
@@ -10192,7 +10273,6 @@ var render = function() {
         "div",
         { staticClass: "flex row no-padding-left" },
         [
-          _vm._v(" " + _vm._s(_vm.convoIsFiltered) + " "),
           _c("div", { staticClass: "flex col conversation-infos-container" }, [
             _c("h2", [_vm._v("Transcription display options")]),
             _c("div", { staticClass: "conversation-infos-items" }, [
@@ -10365,141 +10445,204 @@ var render = function() {
                   : _vm._e()
               ]),
               _c("div", { staticClass: "transcription-filters flex row" }, [
-                _c(
-                  "select",
-                  {
-                    directives: [
+                _c("span", { staticClass: "transcription-filters-label" }, [
+                  _vm._v("Filters :")
+                ]),
+                _c("div", { staticClass: "flex col flex1" }, [
+                  _c(
+                    "span",
+                    { staticClass: "transcription-filters__select-label" },
+                    [_vm._v("Speakers:")]
+                  ),
+                  _c("div", { staticClass: "flex row" }, [
+                    _c(
+                      "select",
                       {
-                        name: "model",
-                        rawName: "v-model",
-                        value: _vm.convoFilter.speaker,
-                        expression: "convoFilter.speaker"
-                      }
-                    ],
-                    attrs: { id: "filter-speaker" },
-                    on: {
-                      change: function($event) {
-                        var $$selectedVal = Array.prototype.filter
-                          .call($event.target.options, function(o) {
-                            return o.selected
-                          })
-                          .map(function(o) {
-                            var val = "_value" in o ? o._value : o.value
-                            return val
-                          })
-                        _vm.$set(
-                          _vm.convoFilter,
-                          "speaker",
-                          $event.target.multiple
-                            ? $$selectedVal
-                            : $$selectedVal[0]
-                        )
-                      }
-                    }
-                  },
-                  [
-                    _vm._l(_vm.convo.speakers, function(spk) {
-                      return _c(
-                        "option",
-                        {
-                          key: spk.speaker_id,
-                          domProps: { value: spk.speaker_id }
-                        },
-                        [_vm._v(_vm._s(spk.speaker_name))]
-                      )
-                    }),
-                    _c("option", { attrs: { value: "" } }, [_vm._v("None")])
-                  ],
-                  2
-                ),
-                _c(
-                  "select",
-                  {
-                    directives: [
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.convoFilter.speaker,
+                            expression: "convoFilter.speaker"
+                          }
+                        ],
+                        staticClass: "transcription-filters__select flex1",
+                        attrs: { id: "filter-speaker" },
+                        on: {
+                          change: function($event) {
+                            var $$selectedVal = Array.prototype.filter
+                              .call($event.target.options, function(o) {
+                                return o.selected
+                              })
+                              .map(function(o) {
+                                var val = "_value" in o ? o._value : o.value
+                                return val
+                              })
+                            _vm.$set(
+                              _vm.convoFilter,
+                              "speaker",
+                              $event.target.multiple
+                                ? $$selectedVal
+                                : $$selectedVal[0]
+                            )
+                          }
+                        }
+                      },
+                      [
+                        _vm._l(_vm.convo.speakers, function(spk) {
+                          return _c(
+                            "option",
+                            {
+                              key: spk.speaker_id,
+                              domProps: { value: spk.speaker_id }
+                            },
+                            [_vm._v(_vm._s(spk.speaker_name))]
+                          )
+                        }),
+                        _c("option", { attrs: { value: "" } }, [_vm._v("None")])
+                      ],
+                      2
+                    ),
+                    _vm.convoFilter.speaker !== ""
+                      ? _c("button", {
+                          staticClass: "cancel-filter-btn",
+                          on: {
+                            click: function($event) {
+                              _vm.convoFilter.speaker = ""
+                            }
+                          }
+                        })
+                      : _vm._e()
+                  ])
+                ]),
+                _c("div", { staticClass: "flex col flex1" }, [
+                  _c(
+                    "span",
+                    { staticClass: "transcription-filters__select-label" },
+                    [_vm._v("Highlights:")]
+                  ),
+                  _c("div", { staticClass: "flex row" }, [
+                    _c(
+                      "select",
                       {
-                        name: "model",
-                        rawName: "v-model",
-                        value: _vm.convoFilter.highlights,
-                        expression: "convoFilter.highlights"
-                      }
-                    ],
-                    attrs: { id: "filter-highlights" },
-                    on: {
-                      change: function($event) {
-                        var $$selectedVal = Array.prototype.filter
-                          .call($event.target.options, function(o) {
-                            return o.selected
-                          })
-                          .map(function(o) {
-                            var val = "_value" in o ? o._value : o.value
-                            return val
-                          })
-                        _vm.$set(
-                          _vm.convoFilter,
-                          "highlights",
-                          $event.target.multiple
-                            ? $$selectedVal
-                            : $$selectedVal[0]
-                        )
-                      }
-                    }
-                  },
-                  [
-                    _vm._l(_vm.convo.highlights, function(hl) {
-                      return _c(
-                        "option",
-                        { key: hl._id, domProps: { value: hl._id } },
-                        [_vm._v(_vm._s(hl.label))]
-                      )
-                    }),
-                    _c("option", { attrs: { value: "" } }, [_vm._v("None")])
-                  ],
-                  2
-                ),
-                _c(
-                  "select",
-                  {
-                    directives: [
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.convoFilter.highlights,
+                            expression: "convoFilter.highlights"
+                          }
+                        ],
+                        staticClass: "transcription-filters__select flex1",
+                        attrs: { id: "filter-highlights" },
+                        on: {
+                          change: function($event) {
+                            var $$selectedVal = Array.prototype.filter
+                              .call($event.target.options, function(o) {
+                                return o.selected
+                              })
+                              .map(function(o) {
+                                var val = "_value" in o ? o._value : o.value
+                                return val
+                              })
+                            _vm.$set(
+                              _vm.convoFilter,
+                              "highlights",
+                              $event.target.multiple
+                                ? $$selectedVal
+                                : $$selectedVal[0]
+                            )
+                          }
+                        }
+                      },
+                      [
+                        _vm._l(_vm.convo.highlights, function(hl) {
+                          return _c(
+                            "option",
+                            { key: hl._id, domProps: { value: hl._id } },
+                            [_vm._v(_vm._s(hl.label))]
+                          )
+                        }),
+                        _c("option", { attrs: { value: "" } }, [_vm._v("None")])
+                      ],
+                      2
+                    ),
+                    _vm.convoFilter.highlights !== ""
+                      ? _c("button", {
+                          staticClass: "cancel-filter-btn",
+                          on: {
+                            click: function($event) {
+                              _vm.convoFilter.highlights = ""
+                            }
+                          }
+                        })
+                      : _vm._e()
+                  ])
+                ]),
+                _c("div", { staticClass: "flex col flex1" }, [
+                  _c(
+                    "span",
+                    { staticClass: "transcription-filters__select-label" },
+                    [_vm._v("Keywords:")]
+                  ),
+                  _c("div", { staticClass: "flex row" }, [
+                    _c(
+                      "select",
                       {
-                        name: "model",
-                        rawName: "v-model",
-                        value: _vm.convoFilter.keywords,
-                        expression: "convoFilter.keywords"
-                      }
-                    ],
-                    attrs: { id: "filter-highlights" },
-                    on: {
-                      change: function($event) {
-                        var $$selectedVal = Array.prototype.filter
-                          .call($event.target.options, function(o) {
-                            return o.selected
-                          })
-                          .map(function(o) {
-                            var val = "_value" in o ? o._value : o.value
-                            return val
-                          })
-                        _vm.$set(
-                          _vm.convoFilter,
-                          "keywords",
-                          $event.target.multiple
-                            ? $$selectedVal
-                            : $$selectedVal[0]
-                        )
-                      }
-                    }
-                  },
-                  [
-                    _vm._l(_vm.convo.keywords, function(kw) {
-                      return _c(
-                        "option",
-                        { key: kw._id, domProps: { value: kw._id } },
-                        [_vm._v(_vm._s(kw.label))]
-                      )
-                    }),
-                    _c("option", { attrs: { value: "" } }, [_vm._v("None")])
-                  ],
-                  2
-                )
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.convoFilter.keywords,
+                            expression: "convoFilter.keywords"
+                          }
+                        ],
+                        staticClass: "transcription-filters__select flex1",
+                        attrs: { id: "filter-highlights" },
+                        on: {
+                          change: function($event) {
+                            var $$selectedVal = Array.prototype.filter
+                              .call($event.target.options, function(o) {
+                                return o.selected
+                              })
+                              .map(function(o) {
+                                var val = "_value" in o ? o._value : o.value
+                                return val
+                              })
+                            _vm.$set(
+                              _vm.convoFilter,
+                              "keywords",
+                              $event.target.multiple
+                                ? $$selectedVal
+                                : $$selectedVal[0]
+                            )
+                          }
+                        }
+                      },
+                      [
+                        _vm._l(_vm.convo.keywords, function(kw) {
+                          return _c(
+                            "option",
+                            { key: kw._id, domProps: { value: kw._id } },
+                            [_vm._v(_vm._s(kw.label))]
+                          )
+                        }),
+                        _c("option", { attrs: { value: "" } }, [_vm._v("None")])
+                      ],
+                      2
+                    ),
+                    _vm.convoFilter.keywords !== ""
+                      ? _c("button", {
+                          staticClass: "cancel-filter-btn",
+                          on: {
+                            click: function($event) {
+                              _vm.convoFilter.keywords = ""
+                            }
+                          }
+                        })
+                      : _vm._e()
+                  ])
+                ])
               ]),
               !!_vm.convo.text &&
               _vm.convo.text.length > 0 &&

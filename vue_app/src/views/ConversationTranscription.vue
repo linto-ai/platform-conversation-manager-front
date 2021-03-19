@@ -1,7 +1,6 @@
 <template>
   <div class="flex row no-padding-left" v-if="dataLoaded">
     <!-- LEFT PART -->
-    {{ convoIsFiltered }}
     <div class="flex col conversation-infos-container">
       <h2>Transcription display options</h2>
       <div class="conversation-infos-items">
@@ -92,20 +91,39 @@
       <!-- FILTERS -->
       <div class="transcription-filters flex row">
           <!-- by speaker -->
-          <select id="filter-speaker" v-model="convoFilter.speaker">
-            <option v-for="spk in convo.speakers" :key="spk.speaker_id" :value="spk.speaker_id">{{ spk.speaker_name }}</option>
-            <option value="">None</option>
-          </select>
+          <span class="transcription-filters-label">Filters :</span>
+          <div class="flex col flex1">
+            <span class="transcription-filters__select-label">Speakers:</span>
+            <div class="flex row">
+              <select id="filter-speaker" class="transcription-filters__select flex1" v-model="convoFilter.speaker">
+                <option v-for="spk in convo.speakers" :key="spk.speaker_id" :value="spk.speaker_id">{{ spk.speaker_name }}</option>
+                <option value="">None</option>
+              </select>
+              <button v-if="convoFilter.speaker !== ''" @click="convoFilter.speaker = ''" class="cancel-filter-btn"></button>
+            </div>
+          </div>
           <!-- by highlights -->
-          <select id="filter-highlights" v-model="convoFilter.highlights">
-            <option v-for="hl in convo.highlights" :key="hl._id" :value="hl._id">{{ hl.label }}</option>
-            <option value="">None</option>
-          </select>
+          <div class="flex col flex1">
+            <span class="transcription-filters__select-label">Highlights:</span>
+            <div class="flex row">
+              <select id="filter-highlights" class="transcription-filters__select flex1" v-model="convoFilter.highlights">
+                <option v-for="hl in convo.highlights" :key="hl._id" :value="hl._id">{{ hl.label }}</option>
+                <option value="">None</option>
+              </select>
+              <button v-if="convoFilter.highlights !== ''" @click="convoFilter.highlights = ''" class="cancel-filter-btn"></button>
+            </div>
+          </div>
           <!-- by keywords -->
-          <select id="filter-highlights" v-model="convoFilter.keywords">
-            <option v-for="kw in convo.keywords" :key="kw._id" :value="kw._id">{{ kw.label }}</option>
-            <option value="">None</option>
-          </select>
+          <div class="flex col flex1">
+            <span class="transcription-filters__select-label">Keywords:</span>
+            <div class="flex row">
+              <select id="filter-highlights" class="transcription-filters__select flex1" v-model="convoFilter.keywords">
+                <option v-for="kw in convo.keywords" :key="kw._id" :value="kw._id">{{ kw.label }}</option>
+                <option value="">None</option>
+              </select>
+              <button v-if="convoFilter.keywords !== ''" @click="convoFilter.keywords = ''" class="cancel-filter-btn"></button>
+          </div>
+        </div>
       </div>
       <!-- TRANSCRIPTION -->
       <Transcription 

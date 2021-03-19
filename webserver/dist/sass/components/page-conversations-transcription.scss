@@ -301,3 +301,47 @@ input[type="color"]::-webkit-color-swatch {
         }
     }
 }
+
+
+/* FILTER */
+
+.transcription-filters {
+    padding: 10px 0;
+    background-color: rgba(199, 214, 255, 0.3);
+    align-items: center;
+    @include boxShadow(0, 2px, 4px, 0, rgba(0, 0, 0, 0.3));
+    &>div {
+        margin: 0 10px 0 0;
+        padding-right: 40px;
+        position: relative;
+    }
+    .transcription-filters-label {
+        display: inline-block;
+        text-transform: uppercase;
+        color: $blueLight;
+        padding: 0 40px 0 20px;
+    }
+}
+
+.transcription-filters__select-label {
+    display: inline-block;
+    font-size: 14px;
+    line-height: 16px;
+    padding: 2px 0;
+    color: $blueLight;
+}
+
+.transcription-filters__select {
+    display: inline-block;
+}
+
+.cancel-filter-btn {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    @include maskImage('../img/close.svg');
+    background-color: $redLight;
+    &:hover {
+        background-color: $redChart;
+    }
+}

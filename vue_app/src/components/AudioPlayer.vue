@@ -73,20 +73,24 @@ export default {
         bus.$emit('scroll_to_current', {})
       }
     },
-    convoText (data) {
+    convoText (turns) {
       this.pause()
       if (this.convoIsFiltered) {
 
         this.playSegments = []
-        if(data.length > 0) {
-          data.map(turn => {
-            if(turn.words.length > 0) {
+        if(turns.length > 0) {
+          for(let i = 0; i < turns.length; i++) {
+            if(turns[i].words.length > 0) {
               this.playSegments.push({
-                stime: turn.words[0].stime,
-                etime: turn.words[turn.words.length - 1].etime
+                turnid: turns[i].turn_id,
+                stime: turns[i].words[0].stime,
+                etime: turns[i].words[turns[i].words.length - 1].etime,
+                pos: i,
+                first: i === 0 ? true : false,
+                last: i === turns.length - 1 ? true : false
               })
             }
-          })
+          }
         }
       }
       // TODO
@@ -106,6 +110,7 @@ export default {
       
       this.audioPlayer.addEventListener('playing', () => {
         this.audioIsPlaying = true
+       
       })
       
       this.audioPlayer.addEventListener('pause', () => {
@@ -154,12 +159,44 @@ export default {
     playFromTimeLine (e) {
       const val = e.srcElement.value
       const targetTime = parseInt(val * this.duration / 100)
-      console.log(targetTime)
       this.playFrom(targetTime)
     },
     updateTime () {
       this.currentTime = this.audioPlayer.currentTime
       bus.$emit('audio_player_currenttime', {time : this.currentTime })
+      setTimeout(()=>{
+        if(this.convoIsFiltered && this.convoText.length > 0) {
+          const currentTurn = document.getElementById(`turn-${this.currentTurn}`)
+          const currentTurnId = currentTurn.getAttribute('data-turn-id')
+          const currentSegment = this.playSegments.filter(seg => seg.turnid === currentTurnId)
+          if(currentSegment.length > 0) {
+            if(this.audioPlayer.currentTime >= currentSegment[0].etime) {
+                this.playNextSegment(currentSegment)
+            }
+          }
+        }
+      }, 200)
+       
+    },
+    playNextSegment(currentSegment) {
+      this.pause()
+      if(!currentSegment[0].last) {
+        const currentSegmentPos = currentSegment[0].pos
+        const targetSegment = this.playSegments.filter(seg => seg.pos === currentSegmentPos + 1)
+        if(targetSegment.length > 0) {
+          this.playFrom(targetSegment[0].stime)
+        }
+      }
+    },
+    playPreviousSegment(currentSegment) {
+      this.pause()
+      if(!currentSegment[0].first) {
+        const currentSegmentPos = currentSegment[0].pos
+        const targetSegment = this.playSegments.filter(seg => seg.pos === currentSegmentPos - 1)
+        if(targetSegment.length > 0) {
+          this.playFrom(targetSegment[0].stime)
+        }
+      }
     },
     play () {
       this.audioPlayer.play()
@@ -177,46 +214,59 @@ export default {
       this.prctTimelineSelected = e.srcElement.value
     },
     playPrevSpeaker () {
-      const tr = document.getElementsByClassName('active--speaker')
-      if (tr.length === 0) {
-        this.playFrom(this.currentTime)
-      } else {
-        if (parseInt(this.currentTurn) === 1) {
-          this.playFrom(0)
+      if(!this.convoIsFiltered) {
+        const tr = document.getElementsByClassName('active--speaker')
+        if (tr.length === 0) {
+          this.playFrom(this.currentTime)
         } else {
-          const items = document.getElementsByClassName('table-speaker--turn')
-          for(let item of items) {
-            const targetTurn = parseInt(this.currentTurn) - 1
-            const itemTurn = item.getAttribute('data-turn')
-            if (parseInt(itemTurn) === parseInt(targetTurn)) {
-              const targetTime = item.getAttribute('data-stime')
-              this.playFrom(targetTime)
+          if (parseInt(this.currentTurn) === 1) {
+            this.playFrom(0)
+          } else {
+            const items = document.getElementsByClassName('table-speaker--turn')
+            for(let item of items) {
+              const targetTurn = parseInt(this.currentTurn) - 1
+              const itemTurn = item.getAttribute('data-turn')
+              if (parseInt(itemTurn) === parseInt(targetTurn)) {
+                const targetTime = item.getAttribute('data-stime')
+                this.playFrom(targetTime)
+              }
             }
           }
         }
+      } else {
+        const currentTurn = document.getElementById(`turn-${this.currentTurn}`)
+        const currentTurnId = currentTurn.getAttribute('data-turn-id')
+        const currentSegment = this.playSegments.filter(seg => seg.turnid === currentTurnId)
+        console.log(currentSegment)
+        this.playPreviousSegment(currentSegment)
       }
+      
     },
     playNextSpeaker () {
-      const tr = document.getElementsByClassName('active--speaker')
-      console.log('>' ,tr)
-      console.log(' currnetTurn >' , this.currentTurn)
-      if (tr.length === 0) {
-        this.playFrom(this.currentTime)
-      } else {
-        if (parseInt(this.currentTurn) === this.nbTurns - 1) {
-          return
+      if(!this.convoIsFiltered) {
+        const tr = document.getElementsByClassName('active--speaker')
+        if (tr.length === 0) {
+          this.playFrom(this.currentTime)
         } else {
-          const items = document.getElementsByClassName('table-speaker--turn')
-          for(let item of items) {
-            const targetTurn = parseInt(this.currentTurn) + 1
-            console.log('targetTurn', targetTurn)
-            const itemTurn = item.getAttribute('data-turn')
-            if (parseInt(itemTurn) === parseInt(targetTurn)) {
-              const targetTime = item.getAttribute('data-stime')
-              this.playFrom(targetTime)
+          if (parseInt(this.currentTurn) === this.nbTurns - 1) {
+            return
+          } else {
+            const items = document.getElementsByClassName('table-speaker--turn')
+            for(let item of items) {
+              const targetTurn = parseInt(this.currentTurn) + 1
+              const itemTurn = item.getAttribute('data-turn')
+              if (parseInt(itemTurn) === parseInt(targetTurn)) {
+                const targetTime = item.getAttribute('data-stime')
+                this.playFrom(targetTime)
+              }
             }
           }
         }
+      } else {
+        const currentTurn = document.getElementById(`turn-${this.currentTurn}`)
+        const currentTurnId = currentTurn.getAttribute('data-turn-id')
+        const currentSegment = this.playSegments.filter(seg => seg.turnid === currentTurnId)
+        this.playNextSegment(currentSegment)
       }
     },
     showKeyboardCommands () {
