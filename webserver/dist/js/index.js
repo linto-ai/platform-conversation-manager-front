@@ -2894,7 +2894,7 @@ __webpack_require__.r(__webpack_exports__);
 
               case 6:
                 _context3.next = 8;
-                return axios__WEBPACK_IMPORTED_MODULE_4___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this2.convoId, "/speakers/").concat(_this2.speaker.speaker_id), {
+                return axios__WEBPACK_IMPORTED_MODULE_4___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this2.convoId, "/speakers/").concat(_this2.speaker.speaker_id), {
                   method: 'patch',
                   data: {
                     newname: name
@@ -3261,7 +3261,7 @@ __webpack_require__.r(__webpack_exports__);
                 }
 
                 _context4.next = 7;
-                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this3.convoId, "/turn/").concat(_this3.turnId), {
+                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this3.convoId, "/turn/").concat(_this3.turnId), {
                   method: 'put',
                   data: {
                     speakerid: targetSpeaker.value.speaker_id
@@ -3292,7 +3292,7 @@ __webpack_require__.r(__webpack_exports__);
                   newspeakerid: targetSpeaker.value.speaker_id
                 };
                 _context4.next = 15;
-                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this3.convoId, "/turns/").concat(_this3.speaker.speaker_id), {
+                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this3.convoId, "/turns/").concat(_this3.speaker.speaker_id), {
                   method: 'put',
                   data: payload
                 });
@@ -3430,7 +3430,7 @@ __webpack_require__.r(__webpack_exports__);
               case 0:
                 _context6.prev = 0;
                 _context6.next = 3;
-                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this5.convoId, "/speakers"), {
+                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this5.convoId, "/speakers"), {
                   method: 'post',
                   data: {
                     convoid: _this5.convoId,
@@ -3861,7 +3861,7 @@ __webpack_require__.r(__webpack_exports__);
               case 0:
                 _context4.prev = 0;
                 _context4.next = 3;
-                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this5.convoId, "/speakers/").concat(_this5.speakerId), {
+                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this5.convoId, "/speakers/").concat(_this5.speakerId), {
                   method: 'delete',
                   data: {
                     convoid: _this5.convoId,
@@ -3913,7 +3913,7 @@ __webpack_require__.r(__webpack_exports__);
               case 0:
                 _context5.prev = 0;
                 _context5.next = 3;
-                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this6.convoId, "/turns/").concat(_this6.speakerId), {
+                return axios__WEBPACK_IMPORTED_MODULE_5___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this6.convoId, "/turns/").concat(_this6.speakerId), {
                   method: 'put',
                   data: {
                     newspeakerid: _this6.newSpeaker.value,
@@ -4282,7 +4282,7 @@ __webpack_require__.r(__webpack_exports__);
                   speakerid: _this5.selectedSpeaker.value.speaker_id
                 };
                 _context4.next = 6;
-                return axios__WEBPACK_IMPORTED_MODULE_7___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this5.convoId, "/turns/merge"), {
+                return axios__WEBPACK_IMPORTED_MODULE_7___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this5.convoId, "/turns/merge"), {
                   method: 'patch',
                   data: payload
                 });
@@ -4427,7 +4427,7 @@ __webpack_require__.r(__webpack_exports__);
               case 0:
                 _context.prev = 0;
                 _context.next = 3;
-                return axios__WEBPACK_IMPORTED_MODULE_4___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this2.convoId, "/turns/").concat(_this2.speakerId), {
+                return axios__WEBPACK_IMPORTED_MODULE_4___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this2.convoId, "/turns/").concat(_this2.speakerId), {
                   method: 'put',
                   data: {
                     convoid: _this2.convoId,
@@ -4715,7 +4715,7 @@ __webpack_require__.r(__webpack_exports__);
               case 0:
                 _context3.prev = 0;
                 _context3.next = 3;
-                return axios__WEBPACK_IMPORTED_MODULE_9___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this2.convoId, "/speakers"), {
+                return axios__WEBPACK_IMPORTED_MODULE_9___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this2.convoId, "/speakers"), {
                   method: 'post',
                   data: {
                     speakername: speakerName
@@ -4820,7 +4820,7 @@ __webpack_require__.r(__webpack_exports__);
                 };
                 console.log(payload);
                 _context4.next = 19;
-                return axios__WEBPACK_IMPORTED_MODULE_9___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this3.convoId, "/turns/split"), {
+                return axios__WEBPACK_IMPORTED_MODULE_9___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this3.convoId, "/turns/split"), {
                   method: 'put',
                   data: payload
                 });
@@ -6299,7 +6299,7 @@ __webpack_require__.r(__webpack_exports__);
                 _context5.prev = 0;
                 spkCount = _this5.convo.speakers.length;
                 _context5.next = 4;
-                return axios__WEBPACK_IMPORTED_MODULE_13___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this5.convoId, "/speakers"), {
+                return axios__WEBPACK_IMPORTED_MODULE_13___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this5.convoId, "/speakers"), {
                   method: 'post',
                   data: {
                     convoid: _this5.convoId,
@@ -7051,7 +7051,7 @@ __webpack_require__.r(__webpack_exports__);
                 newObject = _this5.buildTextObject();
                 console.log(newObject);
                 _context4.next = 7;
-                return axios__WEBPACK_IMPORTED_MODULE_22___default()("".concat("http://dev.linto.local:8001/api", "/conversation/").concat(_this5.convoId, "/text"), {
+                return axios__WEBPACK_IMPORTED_MODULE_22___default()("".concat("http://loca:8001/api", "/conversation/").concat(_this5.convoId, "/text"), {
                   method: 'put',
                   data: {
                     convoid: _this5.convoId,
@@ -31694,7 +31694,7 @@ vue__WEBPACK_IMPORTED_MODULE_5__["default"].use(vuex__WEBPACK_IMPORTED_MODULE_6_
                 commit = _ref.commit, state = _ref.state;
                 _context.prev = 1;
                 _context.next = 4;
-                return axios__WEBPACK_IMPORTED_MODULE_7___default.a.get("".concat("http://dev.linto.local:8001/api", "/conversations"));
+                return axios__WEBPACK_IMPORTED_MODULE_7___default.a.get("".concat("http://loca:8001/api", "/conversations"));
 
               case 4:
                 getConvos = _context.sent;
