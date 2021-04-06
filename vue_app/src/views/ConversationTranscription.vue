@@ -1,7 +1,6 @@
 <template>
   <div class="flex row no-padding-left" v-if="dataLoaded">
     <!-- LEFT PART -->
-    {{ convoIsFiltered }}
     <div class="flex col conversation-infos-container">
       <h2>Transcription display options</h2>
       <div class="conversation-infos-items">
@@ -123,8 +122,8 @@
        <div> 
          <!-- AUDIO PLAYER -->
         <AudioPlayer 
-          :audioFile="convo.audio" 
-          :duration="convo.duration" 
+          :audioPath="audioPath" 
+          :duration="convo.audio.duration" 
           :editionMode="editionMode" 
           :nbTurns="convo.text.length" 
           :currentTurn="currentTurn" 
@@ -210,6 +209,9 @@ export default {
     convo () {
       return this.$store.getters.conversationById(this.convoId)
     },
+    audioPath() {
+      return `${process.env.VUE_APP_API_ASSETS}/${this.convo.audio.filepath}`
+    },
     speakersArray () {
       let speakersArray = [] 
       if(!!this.convo && !!this.convo.speakers && this.convo.speakers.length > 0) {
@@ -291,9 +293,6 @@ export default {
     }
   },
   watch: {
-    convoText (data) {
-      console.log('convoText', data)
-    },
     'convo.highlights' (data) {
       if (data.length > 0) {
         data.map(hl => {
@@ -372,8 +371,6 @@ export default {
     /* HIGHLIGHTS */
     updateHighlightColor (event, hl) {
       const color = event.srcElement.value
-      console.log('target color', color)
-
       let hlOptionIndex = this.highlightsOptions.findIndex(hlo => hlo._id === hl._id)
       if(hlOptionIndex >= 0) {
         this.highlightsOptions[hlOptionIndex].color = color

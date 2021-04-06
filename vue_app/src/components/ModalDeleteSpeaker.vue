@@ -110,7 +110,7 @@ export default {
           bus.$emit('app_notif', {
             status: 'success',
             message: deleteSpeaker.data.msg,
-            timeout: null
+            timeout: 3000
           })
           this.closeModal()
         }

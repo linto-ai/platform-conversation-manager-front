@@ -17,7 +17,8 @@ export default {
       message: '',
       timeout: null,
       status: '',
-      showNotif: false
+      showNotif: false,
+      redirect: null
     }
   }, 
   mounted () {
@@ -25,6 +26,10 @@ export default {
       this.message = data.message
       this.timeout = data.timeout
       this.status = data.status
+      if (!!data.redirect) {
+        this.redirect = data.redirect
+      }
+
       this.show()
     })
     bus.$on('app_notif_close', (data) => {
@@ -37,6 +42,9 @@ export default {
       if (this.timeout !== null) {
         setTimeout(()=>{
           this.close()
+          if(this.redirect !== null) {
+            window.location.href = this.redirect
+          }
         }, this.timeout)
       }
     },

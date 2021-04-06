@@ -4,6 +4,7 @@ import Router from 'vue-router'
 // Views
 import Index from './views/HelloWorld.vue'
 import Conversations from './views/Conversations.vue'
+import ConversationsCreate from './views/ConversationCreate.vue'
 import ConversationManage from './views/ConversationManage.vue'
 import ConversationTranscription from './views/ConversationTranscription.vue'
 Vue.use(Router)
@@ -31,6 +32,10 @@ const router = new Router({
             component: Conversations
         },
         {
+            path: '/interface/conversation/create',
+            name: 'Create a new conversation',
+            component: ConversationsCreate
+        }, {
             path: '/interface/conversation/:convoId',
             name: 'conversations manager',
             component: ConversationManage
@@ -40,6 +45,7 @@ const router = new Router({
             name: 'conversations transcription',
             component: ConversationTranscription
         }
+
         /*      {
                   path: '/interface/conversations/transcript',
                   name: 'conversation transcription',

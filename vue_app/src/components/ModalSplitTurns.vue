@@ -199,13 +199,10 @@ export default {
             wordids: [this.selectionObj.startWordId, this.selectionObj.endWordId]
           }
           
-
-          console.log(payload)
           const splitTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/split`, {
             method: 'put',
             data: payload 
           })
-          console.log('splitTurn', splitTurns)
           if((splitTurns.status === 200|| splitTurns.status === 202) && !!splitTurns.data.msg) {
             this.closeModal()
             this.dispatchStore('getConversations')
@@ -290,7 +287,6 @@ export default {
                 }
               }
             })
-          console.log(this.splitContentArray)
         }
       }
       else if(this.selectionObj.startTurnId !== this.selectionObj.endTurnId && this.conversation.text.length > 0) {

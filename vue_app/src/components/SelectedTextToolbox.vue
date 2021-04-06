@@ -57,15 +57,12 @@ export default {
   },
   mounted () {
     bus.$on('show_selected_toolbox', (data) => {
-      console.log('>>', data)
       this.show = true
       this.selectionObj = data.selectionObj
       this.offsetX = data.offsetX
       this.offsetY = data.offsetY
       this.convoId = data.convoId
       this.options = data.toolBoxOption
-
-
     })
   },
   methods: {

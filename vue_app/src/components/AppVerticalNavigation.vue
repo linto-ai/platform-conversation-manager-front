@@ -1,7 +1,7 @@
 <template>
   <div id="vertical-navigation" class="flex col" :class="[verticalNavOpen ? 'vertical-navigation__opened' : 'vertical-navigation__closed', verticalNavOpen ? '' : 'small']">
     <div class="app-logo flex col">
-      <a href="/interface"><img :src="logoPath" alt="Conversation Manager" class="app-logo--img" /></a>
+      <a href="/interface/conversations"><img :src="logoPath" alt="Conversation Manager" class="app-logo--img" /></a>
     </div>
     <div class="toggle-nav">
       <button 

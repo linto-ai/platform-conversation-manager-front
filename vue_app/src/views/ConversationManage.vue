@@ -415,40 +415,50 @@ export default {
     playSample (event, start, end) {
       const target = event.target
       const audio = this.convo.audio
-      this.audioPlayer.src = audio
+      this.audioPlayer.src = `${process.env.VUE_APP_API_ASSETS}/${audio.filepath}`
       this.audioPlayer.currentTime = start
       this.audioPlayer.play()
       target.classList.add('active')
       const time = end - start
-      
 
       setTimeout(()=> {
         this.audioPlayer.pause()
         target.classList.remove('active')
       }, time * 1000)
     },
+    async defineNewSpeakerName (spkCount) {
+        let newSpeakerName = `spk${parseInt(spkCount) + 1}`
+        let speakerExist = this.conversation.speakers.filter(spk => spk.speaker_name === newSpeakerName)
+        if(speakerExist.length > 0) {
+          return this.defineNewSpeakerName(spkCount+1)
+        } else {
+          return newSpeakerName
+        }
+    },
     async addSpeaker () {
       try {
-        const spkCount = this.convo.speakers.length
+        let newSpeakerName = await this.defineNewSpeakerName(this.conversation.speakers.length)
         const addSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/speakers`, {
           method: 'post', 
           data: {
             convoid: this.convoId,
-            speakername: `spk${spkCount +1}`
+            speakername: newSpeakerName
           }
         })
-        console.log('addSpeaker', addSpeaker)
         if (addSpeaker.status === 200) {
           await this.dispatchStore('getConversations')
         } else {
-          // todo error
-        }  
+          throw addSpeaker
+        }
       } catch (error) {
-        console.error(erorr)
+        bus.$emit('app_notif', {
+          status: 'error',
+          message: !!error.data.msg ? error.data.msg : 'Error on deleting speaker',
+          timeout: null
+        })
       }
     },
     deleteSpeaker (speakerId) {
-      // TODO
       bus.$emit('modal_delete_speaker', {
         convoId: this.convoId,
         speakerId

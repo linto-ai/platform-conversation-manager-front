@@ -6,10 +6,10 @@
         <button class="conversation-filter--btn conversation-filter--btn__active" >All</button> | <button class="conversation-filter--btn" >Owned by me</button> | <button class="conversation-filter--btn" >Shared with me</button> 
       </div>
       <div class="flex1 flex col flex-end">
-        <button class="btn btn--txt-icon green">
+        <a href="/interface/conversation/create" class="btn btn--txt-icon green">
           <span class="label">New conversation</span>
           <span class="icon icon__plus"></span>
-        </button>
+        </a>
       </div>
     </div>
     <div class="flex">
@@ -32,7 +32,7 @@
             <td class="title">{{ convo.name }}</td>
             <td>{{ convo.description }}</td>
             <td>{{ convo.mdate }}</td>
-            <td>{{ secToHMS(convo.duration) }}</td>
+            <td>{{ secToHMS(convo.audio.duration) }}</td>
             <td>
               <div class="table-user-img flex row">
                 <span class="table-user-img__span" :data-name="convo.owner.name">
@@ -47,7 +47,7 @@
                 </span>
               </div>
             </td>
-            <td class="status" :class="convo.locked === '0' ? 'open' : 'locked'"><span class="label">{{ convo.locked === '0' ? 'open' : 'locked' }}</span></td>
+            <td class="status" :class="convo.locked === 0 ? 'open' : 'locked'"><span class="label">{{ convo.locked === 0 ? 'open' : 'locked' }}</span></td>
           </tr>
         </tbody>
       </table>
@@ -99,7 +99,6 @@ export default {
   computed: {
     sortedConversations () {
       let sortedArray = this.conversations
-      console.log('>', sortedArray)
       if(sortedArray.length > 0) {
         const key = this.sortBy
         if (this.sortDirection === 'down') {

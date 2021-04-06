@@ -40,7 +40,7 @@
 <script>
 import { bus } from '../main.js'
 export default {
-  props: ['audioFile', 'duration', 'nbTurns', 'currentTurn', 'editionMode', 'convoIsFiltered', 'convoText'],
+  props: ['audioPath', 'duration', 'nbTurns', 'currentTurn', 'editionMode', 'convoIsFiltered', 'convoText'],
   data () {
     return {
       currentTime: 0,
@@ -89,8 +89,6 @@ export default {
           })
         }
       }
-      // TODO
-      console.log('segments', this.playSegments)
       if(this.playSegments.length > 0) {
         this.audioPlayer.currentTime = this.playSegments[0].stime
       }
@@ -99,7 +97,7 @@ export default {
   methods : {
     initAudioPlayer() {
       this.audioPlayer = new Audio()
-      this.audioPlayer.src = this.audioFile
+      this.audioPlayer.src = this.audioPath
       this.audioPlayer.ontimeupdate = () => {
         this.updateTime()
       }
@@ -154,7 +152,6 @@ export default {
     playFromTimeLine (e) {
       const val = e.srcElement.value
       const targetTime = parseInt(val * this.duration / 100)
-      console.log(targetTime)
       this.playFrom(targetTime)
     },
     updateTime () {
@@ -198,8 +195,6 @@ export default {
     },
     playNextSpeaker () {
       const tr = document.getElementsByClassName('active--speaker')
-      console.log('>' ,tr)
-      console.log(' currnetTurn >' , this.currentTurn)
       if (tr.length === 0) {
         this.playFrom(this.currentTime)
       } else {
@@ -209,7 +204,6 @@ export default {
           const items = document.getElementsByClassName('table-speaker--turn')
           for(let item of items) {
             const targetTurn = parseInt(this.currentTurn) + 1
-            console.log('targetTurn', targetTurn)
             const itemTurn = item.getAttribute('data-turn')
             if (parseInt(itemTurn) === parseInt(targetTurn)) {
               const targetTime = item.getAttribute('data-stime')

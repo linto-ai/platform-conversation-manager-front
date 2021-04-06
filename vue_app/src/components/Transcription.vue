@@ -88,7 +88,6 @@ export default {
   methods: {
       scrollToCurrentTurn (pos) {
         const targetTurn = document.getElementById(`turn-${pos}`)
-          console.log(targetTurn)
           transcription.scrollTo({top: targetTurn.offsetTop - 200, behavior: 'smooth' })
       },
      editSpeaker (event, speaker, turnId) {
