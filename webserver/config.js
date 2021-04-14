@@ -8,7 +8,6 @@ function ifHasNotThrow(element, error) {
 }
 
 function ifHas(element, defaultValue) {
-    console.log('ifhas', typeof(element))
     if (!!element) {
         return element
     } else if (typeof(element) === 'undefined') {
@@ -21,7 +20,6 @@ function configureDefaults() {
     try {
         dotenv.config() // loads process.env from .env file (if not specified by the system)
         const envdefault = dotenv.parse(fs.readFileSync('.envdefault')) // default usable values
-        console.log('ENVDEF', envdefault)
         process.env.WEBSERVER_HTTP_PORT = ifHas(process.env.WEBSERVER_HTTP_PORT, envdefault.WEBSERVER_HTTP_PORT)
         process.env.API_WHITELIST = ifHas(process.env.API_WHITELIST, envdefault.API_WHITELIST)
         process.env.COMPONENTS = ifHas(process.env.COMPONENTS, envdefault.COMPONENTS)

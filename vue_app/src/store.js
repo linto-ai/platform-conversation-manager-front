@@ -68,6 +68,46 @@ export default new Vuex.Store({
             } catch (error) {
                 return error.toString()
             }
+        },
+        turnIdsBetweenTwo: (state) => (convoId, payload) => {
+            try {
+                console.log('store', convoId, payload)
+                    // One turn selected
+                if (payload.startTurnPosition === payload.endTurnPosition) {
+                    throw `Can't merge a turn with himself`
+                }
+                // Two turns selected
+                else if (payload.startTurnPosition === payload.endTurnPosition + 1) {
+                    console.log('store 1')
+                    return [payload.startTurnId, payload.endTurnId]
+                }
+                // More than two turns selected (Get turn_ids between first and last turn)
+                else  {
+                    const conversation = state.conversations.filter(c => c._id === convoId)
+                    if (conversation.length > 0) {
+                        console.log('store 2')
+                        const text = conversation[0].text
+                        if (text.length > 0) {
+                            console.log('store 3')
+                            let resp = []
+                            text.map(turn => {
+                                if (turn.pos >= payload.startTurnPosition && turn.pos <= payload.endTurnPosition) {
+                                    console.log('store 4')
+                                    resp.push(turn.turn_id)
+                                }
+                            })
+                            return resp
+
+                        } else {
+                            throw 'conversation text not found'
+                        }
+                    } else {
+                        throw 'conversation not found'
+                    }
+                }
+            } catch (error) {
+                return error.toString()
+            }
         }
     }
 })

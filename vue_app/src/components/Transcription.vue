@@ -88,6 +88,7 @@ export default {
   methods: {
       scrollToCurrentTurn (pos) {
         const targetTurn = document.getElementById(`turn-${pos}`)
+          console.log(targetTurn)
           transcription.scrollTo({top: targetTurn.offsetTop - 200, behavior: 'smooth' })
       },
      editSpeaker (event, speaker, turnId) {
@@ -120,8 +121,6 @@ export default {
           transcription.onmouseup = (e) => {
             const stopClick = new Date()
             this.clickTime = stopClick - startClick
-
-
             const selection = window.getSelection()
             this.selectedText = []
             
@@ -141,7 +140,6 @@ export default {
             const endWord = !selection.extentNode ? selection.focusNode.parentNode : selection.extentNode.parentNode
             const endWordId = endWord.getAttribute('data-word-id')
             const endWordPosition = endWord.getAttribute('data-pos')
-
             const endTurn = endWord.offsetParent
             const endTurnId = endTurn.getAttribute('data-turn-id')
             const endTurnPosition = endTurn.getAttribute('data-pos')
@@ -176,6 +174,7 @@ export default {
       })
     },
     setTextSelection (selectionObj) {
+      console.log('0/ selectionObj', selectionObj)
       this.cancelTextSelection()
       setTimeout(() => {
         let allParents = document.getElementsByClassName('transcription-speaker-sentence')
@@ -183,7 +182,7 @@ export default {
         const endTurnPosition= parseInt(selectionObj.endTurnPosition)
         const startWordPosition = parseInt(selectionObj.startWordPosition)
         const endWordPosition = parseInt(selectionObj.endWordPosition)
-        console.log({
+        console.log('1/', {
           startTurnPosition,
           startWordPosition,
           endTurnPosition,

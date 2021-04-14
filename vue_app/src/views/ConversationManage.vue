@@ -453,7 +453,7 @@ export default {
       } catch (error) {
         bus.$emit('app_notif', {
           status: 'error',
-          message: !!error.data.msg ? error.data.msg : 'Error on deleting speaker',
+          message: !!error.data && !!error.data.msg ? error.data.msg : 'Error on deleting speaker',
           timeout: null
         })
       }

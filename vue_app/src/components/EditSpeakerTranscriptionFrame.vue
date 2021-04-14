@@ -231,7 +231,7 @@ export default {
         if(targetSpeaker.valid === true) {
           let updateSpeakerName = null
           if(this.editSpeakerMode === 'turn') {
-            updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turn/${this.turnId}`, {
+            updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turnspeaker/${this.turnId}`, {
               method: 'put', 
               data: {
                 speakerid: targetSpeaker.value.speaker_id

@@ -509,6 +509,7 @@ select {
 .error-field {
     display: inline-block;
     font-size: 14px;
+    height: 20px;
+    line-height: 20px;
     color: $redChart;
-    padding: 5px 0;
 }

@@ -7,69 +7,196 @@
           <span class="icon icon--close"></span>
         </button>
       </div>
-      <div class="modal--body" v-if="dataLoaded">
+      <div class="modal--body flex col" v-if="dataLoaded">
         <p><strong>You are about to split the following turns : </strong></p>
-        <div class="modal-split-content flex col">
-            <!-- before split -->
-           <div 
-            v-if="splitContentArray.before_split !== null"
-            class="modal-content--item"
+        <div class="flex row split-type-buttons" v-if="oneWordSelected && !oneWordFirstPosition && !oneWordLastPosition">
+          <button 
+            :class="splitType === 'before' ? 'active' : ''"
+            class="split-type-btn before"
+            @click="setSplitType('before')"
           >
-            <span class="modal-content--speaker" >
-              {{ speakers[speakers.findIndex(spk => spk.speaker_id === splitContentArray.before_split.speaker_id)].speaker_name }} :
-            </span>
-            <span class="modal-content--text">{{ splitContentArray.before_split.text }}</span>
-          </div>
-          <!-- split -->
-          <div 
-            v-if="splitContentArray.split !== null"
-            class="modal-content--item flex row"
+            <span class="split-type-btn__icon"></span>
+            <span class="split-type-btn__label">Split before</span>
+          </button>
+          
+          <button 
+            @click="setSplitType('out')"
+            class="split-type-btn on"
+            :class="splitType === 'out' ? 'active' : ''"
+            
           >
-          <div class="flex col">
-            <span class="modal-content--label">{{ selectSpeakerList ? 'Select a speaker' : 'Add a speaker'}}</span>
-            <div class="flex row">
-              <!-- new speaker select -->
-              <select 
-                v-if="selectSpeakerList"
-                v-model="newSpeaker.value"
-                :class="newSpeaker.error !== null ? 'error' : ''"
-              >
-                <option  v-for="spk in speakers" :key="spk.speaker_id" :value="spk.speaker_id">{{ spk.speaker_name }}</option>
-              </select>
-              <!-- new speaker input -->
-              <input 
-                v-else 
-                type="text" 
-                v-model="newSpeaker.value"
-                :class="newSpeaker.error !== null ? 'error' : ''"
-              >
-              <button 
-                class="btn--icon" 
-                @click="newSpeakerMode()" 
-                style="margin:0 10px;" 
-                id="modal-select-speaker"
-                :data-desc="selectSpeakerList ? 'Create a new speaker' : 'Select a speaker' "
-              >
-                <span class="icon"
-                :class="selectSpeakerList ? 'icon--add' : 'icon--list'"></span>
-              </button>
-              <span class="modal-content--speaker" > :</span>
-            </div>
-            <span class="error-field" v-if="newSpeaker.error !== null">{{newSpeaker.error }}</span>
-          </div>
-          <span class="modal-content--text">{{ splitContentArray.split.text }}</span>
+            <span class="split-type-btn__icon"></span>
+            <span class="split-type-btn__label">Split out</span>
+          </button>
+          
+          <button 
+            @click="setSplitType('after')"
+            class="split-type-btn after"
+            :class="splitType === 'after' ? 'active' : ''"
+          >
+            <span class="split-type-btn__icon"></span>
+            <span class="split-type-btn__label">Split after</span>
+          </button>
+
         </div>
-        <!-- After split -->
+        <div class="flex col modal-edit-turns">
+          <!-- BEFORE SPLIT -->
+          <div 
+            v-if="splitContentArray.before_split !== null"
+            class="modal-edit-turn__item flex row"
+          >
+            <!-- Speaker -->
+            <div class="flex row modal-edit-turn__speaker" v-if="splitType === 'after'">
+              <div class="flex col">
+                <button 
+                  class="btn--icon modal-edit-turn__speaker-btn" 
+                  @click="newSpeakerMode()" 
+                  :data-desc="selectSpeakerList ? 'Create a new speaker' : 'Select a speaker' "
+                >
+                  <span class="icon"
+                  :class="selectSpeakerList ? 'icon--add' : 'icon--list'"></span>
+                </button>
+              </div>
+
+              <!-- Speaker select/input -->
+              <div class="flex col">
+                <span class="modal-edit-turn__field-label">{{ selectSpeakerList ? 'Select a speaker' : 'Add a speaker'}}</span>
+                <select 
+                  v-if="selectSpeakerList"
+                  v-model="newSpeaker.value"
+                  :class="newSpeaker.error !== null ? 'error' : ''"
+                  class="modal-edit-turn__select"
+                  @change="checkForm()"
+                >
+                  <option  v-for="spk in speakers" :key="spk.speaker_id" :value="spk.speaker_id">{{ spk.speaker_name }}</option>
+                </select>
+                <input 
+                  v-else 
+                  type="text" 
+                  v-model="newSpeaker.value"
+                  class="modal-edit-turn__input"
+                  :class="newSpeaker.error !== null ? 'error' : ''"
+                >
+                <span class="error-field">{{newSpeaker.error !== null ? newSpeaker.error : '' }}</span>
+              </div>
+              <span class="modal-edit-turn__speaker-name" style="padding: 30px 0 0 5px;">:</span>
+            </div>
+            <div class="flex row modal-edit-turn__speaker" v-else>
+              <div class="flex col">
+                 <span class="modal-edit-turn__speaker-name">{{ speakers[speakers.findIndex(spk => spk.speaker_id === splitContentArray.before_split.speaker_id)].speaker_name }} :</span>
+              </div>
+            </div>
+            <!-- Content -->
+            <div class="flex row flex1 modal-edit-turn__content">
+              <span class="modal-edit-turn__content-txt" v-if="splitType === 'after'">{{ splitContentArray.before_split.text }} {{ splitContentArray.split.text }}</span>
+              <span class="modal-edit-turn__content-txt" v-else>{{ splitContentArray.before_split.text }}</span>
+            </div>
+
+          </div>
+          <!-- END BEFORE SPLIT -->
+          <!-- ON SPLIT -->
+          <div 
+            v-if="splitContentArray.split !== null && splitType === 'out'"
+            class="modal-edit-turn__item flex row"
+          >
+            <!-- Speaker -->
+            <div class="flex row modal-edit-turn__speaker">
+              <div class="flex col">
+                <button 
+                  class="btn--icon modal-edit-turn__speaker-btn" 
+                  @click="newSpeakerMode()" 
+                  :data-desc="selectSpeakerList ? 'Create a new speaker' : 'Select a speaker' "
+                >
+                  <span class="icon"
+                  :class="selectSpeakerList ? 'icon--add' : 'icon--list'"></span>
+                </button>
+              </div>
+
+              <!-- Speaker select/input -->
+              <div class="flex col">
+                <span class="modal-edit-turn__field-label">{{ selectSpeakerList ? 'Select a speaker' : 'Add a speaker'}}</span>
+                <select 
+                  v-if="selectSpeakerList"
+                  v-model="newSpeaker.value"
+                  :class="newSpeaker.error !== null ? 'error' : ''"
+                  class="modal-edit-turn__select"
+                  @change="checkForm()"
+                >
+                  <option  v-for="spk in speakers" :key="spk.speaker_id" :value="spk.speaker_id">{{ spk.speaker_name }}</option>
+                </select>
+                <input 
+                  v-else 
+                  type="text" 
+                  v-model="newSpeaker.value"
+                  class="modal-edit-turn__input"
+                  :class="newSpeaker.error !== null ? 'error' : ''"
+                >
+                <span class="error-field">{{newSpeaker.error !== null ? newSpeaker.error : '' }}</span>
+              </div>
+              <span class="modal-edit-turn__speaker-name" style="padding: 30px 0 0 5px;">:</span>
+            </div>
+            <!-- Content-->
+            <div class="flex row flex1 modal-edit-turn__content">
+              <span class="modal-edit-turn__content-txt">{{ splitContentArray.split.text }}</span>
+            </div>
+          </div>
+          <!-- END ON SPLIT -->
+          <!-- AFTER SPLIT -->
           <div 
             v-if="splitContentArray.after_split !== null"
-            class="modal-content--item"
+            class="modal-edit-turn__item flex row"
           >
-            <span class="modal-content--speaker" >
-              {{ speakers[speakers.findIndex(spk => spk.speaker_id === splitContentArray.after_split.speaker_id)].speaker_name }} :
-              </span>
-            <span class="modal-content--text">{{ splitContentArray.after_split.text }}</span>
-          </div>
+            <!-- Speaker -->
+            <div class="flex row modal-edit-turn__speaker" v-if="splitType === 'before'">
+              <div class="flex col">
+                <button 
+                  class="btn--icon modal-edit-turn__speaker-btn" 
+                  @click="newSpeakerMode()" 
+                  :data-desc="selectSpeakerList ? 'Create a new speaker' : 'Select a speaker' "
+                >
+                  <span class="icon"
+                  :class="selectSpeakerList ? 'icon--add' : 'icon--list'"></span>
+                </button>
+              </div>
 
+              <!-- Speaker select/input -->
+              <div class="flex col">
+                <span class="modal-edit-turn__field-label">{{ selectSpeakerList ? 'Select a speaker' : 'Add a speaker'}}</span>
+                <select 
+                  v-if="selectSpeakerList"
+                  v-model="newSpeaker.value"
+                  :class="newSpeaker.error !== null ? 'error' : ''"
+                  class="modal-edit-turn__select"
+                  @change="checkForm()"
+                >
+                  <option  v-for="spk in speakers" :key="spk.speaker_id" :value="spk.speaker_id">{{ spk.speaker_name }}</option>
+                </select>
+                <input 
+                  v-else 
+                  type="text" 
+                  v-model="newSpeaker.value"
+                  class="modal-edit-turn__input"
+                  :class="newSpeaker.error !== null ? 'error' : ''"
+                >
+                <span class="error-field">{{newSpeaker.error !== null ? newSpeaker.error : '' }}</span>
+              </div>
+              <span class="modal-edit-turn__speaker-name" style="padding: 30px 0 0 5px;">:</span>
+            </div>
+            <div class="flex row modal-edit-turn__speaker" v-else>
+              <div class="flex col">
+                 <span class="modal-edit-turn__speaker-name">{{ speakers[speakers.findIndex(spk => spk.speaker_id === splitContentArray.after_split.speaker_id)].speaker_name }} :</span>
+              </div>
+            </div>
+            <!-- Content -->
+            <div class="flex row flex1 modal-edit-turn__content">
+              <span class="modal-edit-turn__content-txt" v-if="splitType === 'before'">{{ splitContentArray.split.text }} {{ splitContentArray.after_split.text }}</span>
+              <span class="modal-edit-turn__content-txt" v-else>{{ splitContentArray.after_split.text }}</span>
+            </div>
+
+          </div>
+          <!-- END AFTER SPLIT -->
+
+         
         </div>
       </div>
       <div class="modal--footer">
@@ -107,7 +234,9 @@ export default {
         error: null,
         valid: false
       },
-      selectSpeakerList: true
+      selectSpeakerList: true,
+      splitType: 'out',
+      
     }
   },
   async mounted () {
@@ -116,6 +245,7 @@ export default {
       this.modalShow = true
       this.selectionObj = data.selectionObj
       this.convoId = data.convoId
+      this.splitType = 'out'
       this.setContent()
     })
   },
@@ -127,7 +257,35 @@ export default {
       return this.$store.getters.conversationById(this.convoId)
     },
     speakers () {
-        return this.$store.getters.speakersByConversationId(this.convoId)
+      if(!!this.conversation) {
+        return this.conversation.speakers
+      } 
+      return {}
+    },
+    oneWordSelected () {
+      if(this.selectionObj !== null) {
+        return (this.selectionObj.startTurnPosition === this.selectionObj.endTurnPosition) && (this.selectionObj.startWordPosition === this.selectionObj.endWordPosition)
+      }
+      return false
+    },
+    oneWordFirstPosition () {
+      if (this.oneWordSelected) {
+        return this.oneWordSelected && parseInt(this.selectionObj.startWordPosition) === 0
+      }
+      return false
+    },
+    oneWordLastPosition () {
+      if (this.oneWordSelected) {
+        let turnPos = parseInt(this.selectionObj.startTurnPosition)
+        let turn = this.conversation.text.filter(t => parseInt(t.pos) === turnPos)
+        let wordPos = parseInt(this.selectionObj.startWordPosition)
+        if (turn.length > 0) {
+          let nbWords = turn[0].words.length
+          return wordPos === nbWords - 1
+        }
+        return false
+      }
+      return false
     }
   },
   methods: {
@@ -166,6 +324,7 @@ export default {
         return false
       }
     },
+    
     async splitTurn () {
       try {
         this.checkForm()
@@ -190,19 +349,43 @@ export default {
               }
             }
           } 
+          let payload = {}
           
-          const payload = {
-            convoid: this.convoId,
-            speakerid: this.newSpeaker.value,
-            positions: parseInt(this.selectionObj.startTurnId) === parseInt(this.selectionObj.endTurnId) ? [parseInt(this.selectionObj.startTurnPosition)] : [parseInt(this.selectionObj.startTurnPosition), parseInt(this.selectionObj.endTurnPosition)],
-            turnids: this.selectionObj.startTurnId === this.selectionObj.endTurnId ? [this.selectionObj.startTurnId] : [this.selectionObj.startTurnId, this.selectionObj.endTurnId] ,
-            wordids: [this.selectionObj.startWordId, this.selectionObj.endWordId]
+          // group of words selected
+          if (!this.oneWordSelected) {
+            payload = {
+              convoid: this.convoId,
+              speakerid: this.newSpeaker.value,
+              positions: parseInt(this.selectionObj.startTurnId) === parseInt(this.selectionObj.endTurnId) ? [parseInt(this.selectionObj.startTurnPosition)] : [parseInt(this.selectionObj.startTurnPosition), parseInt(this.selectionObj.endTurnPosition)],
+              wordids: [this.selectionObj.startWordId, this.selectionObj.endWordId],
+              splitype: 0
+            }
+          } 
+              
+          // 1 word selected
+          else {
+            let splitVal = 0
+            if (this.splitType === 'before'|| this.oneWordLastPosition) {
+              splitVal = 1
+            } else if (this.splitType === 'after' || this.oneWordFirstPosition) {
+              splitVal = 2
+            }
+            payload = {
+              convoid: this.convoId,
+              speakerid: this.newSpeaker.value,
+              positions: [parseInt(this.selectionObj.startTurnPosition)],
+              turnids: [this.selectionObj.startTurnId],
+              wordids: [this.selectionObj.startWordId], 
+              splitype: splitVal
+            }
           }
+          console.log('payload', payload)
           
-          const splitTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/split`, {
+          const splitTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turn/split`, {
             method: 'put',
             data: payload 
           })
+          console.log('splitTurns',splitTurns)
           if((splitTurns.status === 200|| splitTurns.status === 202) && !!splitTurns.data.msg) {
             this.closeModal()
             this.dispatchStore('getConversations')
@@ -216,9 +399,10 @@ export default {
           }
         }
       } catch (error) {
+        console.error(error)
         bus.$emit('app_notif', {
           status: 'error',
-          message: !!error.data.msg ? error.data.msg : 'Error on spliting turns',
+          message: !!error.data && !!error.data.msg ? error.data.msg : 'Error on spliting turns',
           timeout: null
         })
       }
@@ -226,6 +410,12 @@ export default {
     },
     closeModal () {
       this.modalShow = false
+    },
+    setSplitType (splitType) {
+      if (this.splitType !== splitType) {
+        this.splitType = splitType
+        
+      }
     },
     async setContent () {
       console.log('selection :', this.selectionObj)
@@ -289,7 +479,7 @@ export default {
             })
         }
       }
-      else if(this.selectionObj.startTurnId !== this.selectionObj.endTurnId && this.conversation.text.length > 0) {
+      else if (this.selectionObj.startTurnId !== this.selectionObj.endTurnId && this.conversation.text.length > 0) { // Multiple turns selected
         const startTurn = this.conversation.text.find(turn => turn.turn_id === this.selectionObj.startTurnId)
         const endTurn = this.conversation.text.find(turn => turn.turn_id === this.selectionObj.endTurnId)
         // Before split 
@@ -352,8 +542,6 @@ export default {
             }
             // end turn
             if (turnPos === parseInt(this.selectionObj.endTurnPosition) && turn.words.length > 0) {
-              console.log('end turn')
-
               turn.words.map(word => {
                 if(parseInt(word.pos) <= parseInt(this.selectionObj.endWordPosition)) {
                   if(this.splitContentArray.split !== null) {
@@ -391,6 +579,7 @@ export default {
           })
         }
       }
+      console.log('splitArray', this.splitContentArray)
     },
     async dispatchStore (topic) {
       try {

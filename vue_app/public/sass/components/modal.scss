@@ -55,56 +55,109 @@
 }
 
 .modal-merge-content,
-.modal-split-content {
+.modal-edit-turns {
     margin-bottom: 20px;
     padding: 10px;
     background-color: #dffcff;
     max-height: 400px;
     overflow: auto;
-    .modal-content--item {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        border-bottom: 1px solid #ececec;
-        padding: 10px;
-        .modal-content--speaker {
+}
+
+.modal-edit-turn__item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: 1px solid #ececec;
+    padding: 10px;
+    .modal-edit-turn__speaker {
+        width: 240px;
+        justify-content: flex-end;
+        .modal-edit-turn__speaker-name {
             font-size: 15px;
             font-weight: 700;
             color: $blueChart;
             white-space: nowrap;
         }
-        .modal-content--text {
-            padding-left: 10px;
-            font-size: 15px;
-            font-weight: 500;
+        .modal-edit-turn__speaker-btn {
+            position: relative;
+            margin: 20px 10px 0 0;
+            &:hover {
+                &:after {
+                    content: attr(data-desc);
+                    display: inline-block;
+                    padding: 5px;
+                    position: absolute;
+                    top: 35px;
+                    left: 0;
+                    font-size: 14px;
+                    background-color: $greenChart;
+                    color: #fff;
+                    width: 120px;
+                    text-align: center;
+                    @include borderRadius(3px);
+                    @include boxShadow(0, 1px, 2px, 0, rgba(0, 0, 0, 0.3));
+                }
+            }
         }
-        .modal-content--label {
+        .modal-edit-turn__field-label {
             font-size: 14px;
-            padding: 0 0 3px 0;
+            height: 20px;
+            line-height: 20px;
             color: $blueChart;
             font-style: italic;
             white-space: nowrap;
         }
+        input[type="text"].modal-edit-turn__input,
+        select.modal-edit-turn__select {
+            width: 160px;
+        }
+    }
+    .modal-edit-turn__content {
+        padding: 0 20px;
+        align-items: center;
+        .modal-edit-turn__content-txt {
+            font-size: 15px;
+        }
     }
 }
 
-button#modal-select-speaker {
-    position: relative;
-    &:hover {
-        &:after {
-            content: attr(data-desc);
+.modal-merge-content {
+    .modal-edit-turn__item {
+        .modal-edit-turn__speaker {
+            min-width: 140px;
+            width: auto;
+        }
+    }
+}
+
+.split-type-buttons {
+    margin-bottom: 20px;
+    button.split-type-btn {
+        display: inline-block;
+        height: 30px;
+        padding: 0 10px;
+        border: 1px solid $blueChart;
+        position: relative;
+        margin-right: 10px;
+        .label {
             display: inline-block;
-            padding: 5px;
-            position: absolute;
-            top: 35px;
-            left: 0;
-            font-size: 14px;
-            background-color: $greenChart;
-            color: #fff;
-            width: 120px;
-            text-align: center;
-            @include borderRadius(3px);
-            @include boxShadow(0, 1px, 2px, 0, rgba(0, 0, 0, 0.3));
+            height: 30px;
+            line-height: 30px;
+            font-size: 16px;
+            color: $blueChart;
+        }
+        .icon {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: red;
+            margin-left: 5px;
+        }
+        &.active {
+            background: $greenChart;
+            .label {
+                color: #fff;
+            }
         }
     }
 }

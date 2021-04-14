@@ -5,7 +5,7 @@
       <div class="flex1 flex row speaker-search">
         <input class="input input--search-edit flex1" type="text" placeholder="Type a name" v-model="speakerName">
         <button class="btn--icon" @click="addSpeaker()">
-          <span class="icon icon--add"></span>
+          <span class="icon icon--apply"></span>
         </button>
       </div>
       <div v-if="speakers !== null && speakers.length > 0">
@@ -37,9 +37,11 @@ export default {
   },
   async mounted () {
     bus.$on(`edit_speaker`, async (data) => {
+      console.log(data)
         this.showFrame = true
         this.convoId = data.conversationId
         this.speaker = data.speaker
+        this.speakerName = data.speaker.speaker_name
         
         if (!!data.speakers && data.speakers.length > 0) {
           this.speakers = data.speakers.filter(spk => spk.speaker_name !== this.speaker.speaker_name)
@@ -73,7 +75,7 @@ export default {
         const updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/speakers/${this.speaker.speaker_id}`, {
           method: 'patch', 
           data: {
-            newname: name
+            newspeakername: name
           }
         })
         if (updateSpeakerName.status === 200) {

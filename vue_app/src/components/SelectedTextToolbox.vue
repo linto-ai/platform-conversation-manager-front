@@ -46,7 +46,6 @@ export default {
       if (data === true) {
         if (this.content.length === 1) {
           this.showKeywordOption = true
-
           const audioPlayer = document.getElementById('audio-player')
           if(audioPlayer.classList.contains('isPlaying')){
             bus.$emit('audio_player_pause', {})
@@ -74,7 +73,7 @@ export default {
       this.closeToolbox()
       bus.$emit('highlight_modal_open', {
         content: this.content,
-        selection: this.selection,
+        selectionObj: this.selectionObj,
         conversationId: this.conversationId
       })
     },
@@ -93,7 +92,8 @@ export default {
         })
       bus.$emit('merge_sentences_modal', {
           turnids: [this.selectionObj.startTurnId, this.selectionObj.endTurnId],
-          positions: [this.selectionObj.startTurnPosition, this.selectionObj.endTurnPosition],
+          positions: [parseInt(this.selectionObj.startTurnPosition), parseInt(this.selectionObj.endTurnPosition)],
+          selectionObj: this.selectionObj,
           convoid: this.convoId
         })
     }
