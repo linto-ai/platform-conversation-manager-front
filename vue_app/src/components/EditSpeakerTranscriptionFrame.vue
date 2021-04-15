@@ -230,6 +230,7 @@ export default {
         this.testSelectedSpeaker(targetSpeaker)
         if(targetSpeaker.valid === true) {
           let updateSpeakerName = null
+          // update speaker for a turn
           if(this.editSpeakerMode === 'turn') {
             updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turnspeaker/${this.turnId}`, {
               method: 'put', 
@@ -241,14 +242,14 @@ export default {
               this.closeFrame()
               bus.$emit(`refresh_conversation`, {})
             }
-          } else if (this.editSpeakerMode === 'transcription') {
+          } 
+          // Update speaker for all transcription
+          else if (this.editSpeakerMode === 'transcription') {
             const payload = {
-                speakerid: this.speaker.speaker_id,
-                convoid: this.convoId,
                 newspeakerid: targetSpeaker.value.speaker_id
               }
-            updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/${this.speaker.speaker_id}`, {
-              method: 'put', 
+            updateSpeakerName = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/mergespeakers/${this.speaker.speaker_id}`, {
+              method: 'patch', 
               data: payload
             })
             if(updateSpeakerName.status === 200) {

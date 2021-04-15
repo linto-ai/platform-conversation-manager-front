@@ -100,11 +100,7 @@ export default {
     async deleteSpeaker () {
       try {
         const deleteSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/speakers/${this.speakerId}`, {
-          method: 'delete',
-          data: {
-            convoid: this.convoId,
-            speakerid: this.speakerId
-          }
+          method: 'delete'
         })
         if (deleteSpeaker.status === 200 && !!deleteSpeaker.data.msg ) {
           bus.$emit('app_notif', {
@@ -124,12 +120,10 @@ export default {
     },
     async mergeSpeakers () {
       try {
-        const updateSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turns/${this.speakerId}`, {
-          method: 'put',
+        const updateSpeaker = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/mergespeakers/${this.speakerId}`, {
+          method: 'patch',
           data: {
-            newspeakerid: this.newSpeaker.value,
-            convoid: this.convoId,
-            speakerid: this.speakerId
+            newspeakerid: this.newSpeaker.value
           }
         })
         if (updateSpeaker.status === 200 && !!updateSpeaker.data.msg) {

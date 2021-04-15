@@ -161,7 +161,7 @@
                   </td>
                   <td>
                     <div v-if="!!speakTime[speaker.speaker_id].time" class="speaker-time-prct-container">
-                      <span class="speaker-time-prct" :style="'width:'+ parseInt(parseFloat(speakTime[speaker.speaker_id].time) * 100 / parseFloat(convo.duration))+'%'">
+                      <span class="speaker-time-prct" :style="'width:'+ parseInt(parseFloat(speakTime[speaker.speaker_id].time) * 100 / parseFloat(convo.audio.duration))+'%'">
                       </span>
                     </div>
                   </td> 
@@ -273,6 +273,7 @@ export default {
             }
         })
       })
+      console.log('speaktime', res)
       return res
     }
   },
