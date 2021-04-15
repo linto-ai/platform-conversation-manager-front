@@ -379,13 +379,10 @@ export default {
               splitype: splitVal
             }
           }
-          console.log('payload', payload)
-          
           const splitTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turn/split`, {
             method: 'put',
             data: payload 
           })
-          console.log('splitTurns',splitTurns)
           if((splitTurns.status === 200|| splitTurns.status === 202) && !!splitTurns.data.msg) {
             this.closeModal()
             this.dispatchStore('getConversations')

@@ -11,9 +11,12 @@
     justify-content: center;
     border: 2px solid;
     @include transition(all 0.3s ease);
-    &.close {
+    &.closed {
         top: 100%;
         margin: 0;
+        padding: 0;
+        height: 0;
+        border: none;
     }
     &.visible {
         top: 100%;

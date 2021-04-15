@@ -37,12 +37,10 @@ export default {
   },
   async mounted () {
     bus.$on(`edit_speaker`, async (data) => {
-      console.log(data)
         this.showFrame = true
         this.convoId = data.conversationId
         this.speaker = data.speaker
         this.speakerName = data.speaker.speaker_name
-        
         if (!!data.speakers && data.speakers.length > 0) {
           this.speakers = data.speakers.filter(spk => spk.speaker_name !== this.speaker.speaker_name)
         } else {

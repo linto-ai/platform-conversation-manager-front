@@ -65,7 +65,6 @@ export default {
   },
   async mounted () {
     bus.$on('merge_sentences_modal', async (data) => {
-      console.log(data)
       this.turnIds = data.turnids
       this.convoId = data.convoid
       this.positions = data.positions
@@ -164,7 +163,6 @@ export default {
             positions: this.positions,
             speakerid: this.selectedSpeaker.value.speaker_id
           }
-          console.log(payload)
           const mergeTurns = await axios(`${process.env.VUE_APP_CONVO_API}/conversation/${this.convoId}/turn/merge`, {
             method: 'patch',
             data: payload

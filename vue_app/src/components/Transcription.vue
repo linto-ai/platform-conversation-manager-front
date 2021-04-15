@@ -88,7 +88,6 @@ export default {
   methods: {
       scrollToCurrentTurn (pos) {
         const targetTurn = document.getElementById(`turn-${pos}`)
-          console.log(targetTurn)
           transcription.scrollTo({top: targetTurn.offsetTop - 200, behavior: 'smooth' })
       },
      editSpeaker (event, speaker, turnId) {
@@ -174,7 +173,6 @@ export default {
       })
     },
     setTextSelection (selectionObj) {
-      console.log('0/ selectionObj', selectionObj)
       this.cancelTextSelection()
       setTimeout(() => {
         let allParents = document.getElementsByClassName('transcription-speaker-sentence')
@@ -182,12 +180,6 @@ export default {
         const endTurnPosition= parseInt(selectionObj.endTurnPosition)
         const startWordPosition = parseInt(selectionObj.startWordPosition)
         const endWordPosition = parseInt(selectionObj.endWordPosition)
-        console.log('1/', {
-          startTurnPosition,
-          startWordPosition,
-          endTurnPosition,
-          endWordPosition
-        })
         if(selectionObj.startTurnId === selectionObj.endTurnId) { // 1 turn selection
           this.toolBoxOption = {
             comment: true,

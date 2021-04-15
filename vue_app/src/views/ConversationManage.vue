@@ -273,7 +273,6 @@ export default {
             }
         })
       })
-      console.log('speaktime', res)
       return res
     }
   },
